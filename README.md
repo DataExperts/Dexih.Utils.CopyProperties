@@ -1,0 +1,1 @@
+# Dexih.Utils.CopyProperties
