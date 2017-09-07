@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.1</Version>
+    <Authors>Gary Holland</Authors>
+    <Company>Data Experts Group</Company>
+    <Product>Dexih.Utils</Product>
+    <Description>CopyProperties is used to automatically copy data from one collection to another based on matching fields.</Description>
+    <RepositoryUrl>https://github.com/DataExperts/Dexih.Utils.CopyProperties</RepositoryUrl>
+    <PackageReleaseNotes>Alpha release.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -97,6 +97,8 @@ namespace Dexih.CopyProperties.Tests
 
             int count = 0;
             int enumerableCount = 0;
+            int childValueCount = 0;
+
             var type = copyTest1.GetType();
             var properties = copyTest1.GetType().GetProperties();
             foreach (var property in properties)
@@ -107,7 +109,7 @@ namespace Dexih.CopyProperties.Tests
                     Assert.Equal(property.GetValue(copyTest1), property.GetValue(copyTest2));
                 }
 
-                if(Reflection.IsNonStringEnumerable(property))
+                else if(Reflection.IsNonStringEnumerable(property))
                 {
                     enumerableCount++;
                     var items1 = (IEnumerable)property.GetValue(copyTest1, null);
@@ -126,11 +128,25 @@ namespace Dexih.CopyProperties.Tests
                         Assert.NotEqual(items1Array[i].IgnoreThis, items2Array[i].IgnoreThis);
                     }
                 }
+
+                else if(property.Name == "ChildValue")
+                {
+                    childValueCount++;
+
+                    var item1 = (ChildTest)property.GetValue(copyTest1);
+                    var item2 = (ChildTest)property.GetValue(copyTest2);
+
+                    Assert.Equal(item1.Key, item2.Key);
+                    Assert.Equal(item1.Name, item2.Name);
+                    Assert.Equal(item1.Valid, item2.Valid);
+                    Assert.NotEqual(item1.IgnoreThis, item2.IgnoreThis);
+                }
             }
     
             // confirm all properties were tested
             Assert.Equal(count, 17);
             Assert.Equal(enumerableCount, 2);
+            Assert.Equal(childValueCount, 1);
         }
 
         public class CopyTest
@@ -157,6 +173,8 @@ namespace Dexih.CopyProperties.Tests
             [IgnoreCopy]
             public string IgnoreThis { get; set; }
 
+            public ChildTest ChildValue { get; set; }
+
             public ChildTest[] ChildArray { get; set; }
             public List<ChildTest> ChildList { get; set; }
 
@@ -179,6 +197,8 @@ namespace Dexih.CopyProperties.Tests
                 TimespanValue = new TimeSpan(1, 2, 3);
                 GuidValue = new Guid("e596b14b-f804-49c5-99dd-a0b900286f50");
                 EnumValue = ETest.v1;
+
+                ChildValue = new ChildTest() { Key = 50, Name = "childValue", Valid = true, IgnoreThis = "abc" };
 
                 ChildArray = new ChildTest[]
                 {

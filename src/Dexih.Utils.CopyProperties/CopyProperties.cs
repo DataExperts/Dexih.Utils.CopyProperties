@@ -117,9 +117,22 @@ namespace Dexih.CopyProperties
                         typeCollection = targetProperty.PropertyType.GetGenericArguments().Single();
 
                     }
-                    else
+                    else if(IsSimpleType(targetProperty.PropertyType))
                     {
                         targetProperty.SetValue(target, srcProp.GetValue(source, null), null);
+                        continue;
+                    }
+                    else
+                    {
+                        var srcValue = srcProp.GetValue(source);
+                        var targetValue = targetProperty.GetValue(target);
+                        if (targetValue == null)
+                        {
+                            targetValue = Activator.CreateInstance(targetProperty.PropertyType);
+                            targetProperty.SetValue(target, targetValue);
+                        }
+
+                        srcValue.CopyProperties(targetValue, false, null);
                         continue;
                     }
 
