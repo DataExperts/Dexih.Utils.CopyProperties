@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dexih.Utils.CopyProperties", "src\Dexih.Utils.CopyProperties\Dexih.Utils.CopyProperties.csproj", "{D7C6B531-B417-433A-BDAF-6B1A7095C4BD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dexih.Utils.CopyProperties.Tests", "test\Dexih.Utils.CopyProperties.Tests\Dexih.Utils.CopyProperties.Tests.csproj", "{31BF54C9-C47B-447E-9474-26BA443C2074}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7C6B531-B417-433A-BDAF-6B1A7095C4BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7C6B531-B417-433A-BDAF-6B1A7095C4BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7C6B531-B417-433A-BDAF-6B1A7095C4BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7C6B531-B417-433A-BDAF-6B1A7095C4BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31BF54C9-C47B-447E-9474-26BA443C2074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31BF54C9-C47B-447E-9474-26BA443C2074}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31BF54C9-C47B-447E-9474-26BA443C2074}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31BF54C9-C47B-447E-9474-26BA443C2074}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DCA946EF-BFAF-439C-AC6A-5D8D3B9227E6}
+	EndGlobalSection
+EndGlobal

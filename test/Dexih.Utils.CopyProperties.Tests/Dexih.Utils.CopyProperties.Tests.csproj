@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Dexih.CopyProperties\Dexih.CopyProperties.csproj" />
+    <ProjectReference Include="..\..\src\Dexih.Utils.CopyProperties\Dexih.Utils.CopyProperties.csproj" />
   </ItemGroup>
 
 </Project>
