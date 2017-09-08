@@ -10,11 +10,11 @@ environment:
   PATH: $(PATH);$(PROGRAMFILES)\dotnet\
 build_script:
   - appveyor-retry dotnet restore -v Minimal
-  - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
+  - dotnet build src\**\*.csproj -c %CONFIGURATION%
+  - dotnet pack src\**\*.csproj -c %CONFIGURATION% --no-build -o ../../artifacts
 test_script:
   - appveyor-retry dotnet restore -v Minimal
-  - dotnet test 
+  - dotnet test test\**\*.csproj
 artifacts:
   - path: artifacts\*.nupkg
 cache:
