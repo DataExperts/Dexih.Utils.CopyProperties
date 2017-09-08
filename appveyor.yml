@@ -8,9 +8,16 @@ platform: Any CPU
 
 init:
  - ps: $Env:LABEL = "CI" +$Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
+ - ps: $Env:VERSION = "CI" +$Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
 
 environment:
   PATH: $(PATH);$(PROGRAMFILES)\dotnet\
+
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
 
 test_script:
   - appveyor-retry dotnet restore -v Minimal
@@ -41,7 +48,7 @@ for:
   build_script:
   - appveyor-retry dotnet restore -v Minimal
   - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build /p:Version={version} -o ../../artifacts
+  - dotnet pack -c %CONFIGURATION% --no-build /p:Version=%APPVEYOR_BUILD_VERSION% -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
   
@@ -55,7 +62,7 @@ for:
   build_script:
   - appveyor-retry dotnet restore -v Minimal
   - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build /p:Version={version}-ALPHA -o ../../artifacts
+  - dotnet pack -c %CONFIGURATION% --no-build /p:Version=%APPVEYOR_BUILD_VERSION%-ALPHA -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
   
