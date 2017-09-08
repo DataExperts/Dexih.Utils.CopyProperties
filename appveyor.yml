@@ -17,8 +17,8 @@ install:
 environment:
   PATH: $(PATH);$(PROGRAMFILES)\dotnet\
 test_script:
-  - appveyor-retry dotnet restore -v Minimal
-  - dotnet test
+  - dotnet restore .\src\Dexih.Utils.CopyProperties\
+  - dotnet test .\test\Dexih.Utils.CopyProperties.Tests\
 artifacts:
   - path: artifacts\*.nupkg
 services:
