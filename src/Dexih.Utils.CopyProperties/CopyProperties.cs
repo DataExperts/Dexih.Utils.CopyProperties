@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Dexih.CopyProperties
+namespace Dexih.Utils
 {
     /// <summary>
     /// A static class for reflection type functions

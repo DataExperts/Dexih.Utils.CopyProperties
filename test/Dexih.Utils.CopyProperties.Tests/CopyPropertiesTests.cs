@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Dexih.CopyProperties;
+using Dexih.Utils;
 using Xunit;
 using System.Linq;
 using System.Collections;

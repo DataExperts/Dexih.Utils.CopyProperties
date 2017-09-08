@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dexih.CopyProperties
+namespace Dexih.Utils
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class CollectionKeyAttribute : Attribute

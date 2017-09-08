@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dexih.CopyProperties
+namespace Dexih.Utils
 {
     public class CopyPropertiesException : Exception
     {
