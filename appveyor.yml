@@ -8,13 +8,9 @@ init:
  - ps: $Env:LABEL = "CI" +$Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
 environment:
   PATH: $(PATH);$(PROGRAMFILES)\dotnet\
-build_script:
-  - appveyor-retry dotnet restore -v Minimal
-  - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
 test_script:
   - appveyor-retry dotnet restore -v Minimal
-  - dotnet test .\test\**
+  - dotnet test -c %CONFIGURATION% .\test\Dexih.Utils.CopyProperties.Tests\
 artifacts:
   - path: artifacts\*.nupkg
 deploy:
@@ -28,6 +24,45 @@ deploy:
     branch: 
      - test
      - release
+# The release branch publishes without the version suffix, making an official release.
+-
+  branches:
+    only:
+      - release
 
+  configuration: Release
+  build_script:
+  - appveyor-retry dotnet restore -v Minimal
+  - dotnet build -c %CONFIGURATION%
+  - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
+  - del .\artifacts\*test*
+  - del .\artifacts\*Example*
+  
+# test branch produces a nuget package with the version suffix added.
+-
+  branches:
+    only:
+      - test
+
+  configuration: Debug
+  build_script:
+  - appveyor-retry dotnet restore -v Minimal
+  - dotnet build -c %CONFIGURATION%
+  - dotnet pack -c %CONFIGURATION% --no-build --version-suffix %LABEL% -o ../../artifacts
+  - del .\artifacts\*test*
+  - del .\artifacts\*Example*
+  
+# master and dev branchs runs test only, no publishing packages
+-
+  branches:
+    only:
+      - master
+      - /dev-.*/
+
+  configuration: Debug
+  build_script:
+  - appveyor-retry dotnet restore -v Minimal
+  - dotnet build -c %CONFIGURATION%
+  
   
   
