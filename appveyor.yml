@@ -14,11 +14,9 @@ build_script:
   - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
 test_script:
   - appveyor-retry dotnet restore -v Minimal
-  - dotnet test .\test\Dexih.Utils.CopyProperties.Tests\
+  - dotnet test .\test\**
 artifacts:
   - path: artifacts\*.nupkg
-cache:
- - '%USERPROFILE%\.nuget\packages'
 deploy:
  - provider: NuGet
    server: https://www.nuget.org/api/v2/package
