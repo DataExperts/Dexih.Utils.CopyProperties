@@ -13,9 +13,8 @@ build_script:
   - dotnet build -c %CONFIGURATION%
   - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
 test_script:
-  - path: test\**\*.csproj
   - appveyor-retry dotnet restore -v Minimal
-  - dotnet test 
+  - dotnet test .\test\Dexih.Utils.CopyProperties.Tests\
 artifacts:
   - path: artifacts\*.nupkg
 cache:
