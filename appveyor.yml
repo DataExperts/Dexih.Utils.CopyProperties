@@ -1,9 +1,34 @@
-version: 1.0.{build}
+version: '0.1.{build}'
 image: Visual Studio 2017
-dotnet_csproj:
-  patch: true
-  file: '**\*.csproj'
-  version: '{version}'
-  package_version: '{version}'
-build:
-  verbosity: minimal
+configuration:
+- Debug
+- Release
+platform: Any CPU
+init:
+ - ps: $Env:LABEL = "CI" +$Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
+environment:
+  PATH: $(PATH);$(PROGRAMFILES)\dotnet\
+build_script:
+  - appveyor-retry dotnet restore -v Minimal
+  - dotnet build -c %CONFIGURATION%
+  - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
+test_script:
+- dotnet test 
+artifacts:
+  - path: artifacts\*.nupkg
+cache:
+ - '%USERPROFILE%\.nuget\packages'
+deploy:
+ - provider: NuGet
+   server: https://www.nuget.org/api/v2/package
+   api_key:
+     secure: D2Fu0l/iyBVmVqt/yUztGOFPy3FhYdt9DdnYTgr5KvYYSvb+mRstFwoLeEpmZTUN
+   skip_symbols: false
+   symbol_server: https://www.nuget.org/api/v2/package
+   on: 
+    branch: 
+     - test
+     - release
+
+  
+  
