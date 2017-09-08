@@ -12,12 +12,6 @@ init:
 environment:
   PATH: $(PATH);$(PROGRAMFILES)\dotnet\
 
-dotnet_csproj:
-  patch: true
-  file: '**\*.csproj'
-  version: '{version}'
-  package_version: '{version}'
-
 test_script:
   - appveyor-retry dotnet restore -v Minimal
   - dotnet test -c %CONFIGURATION% .\test\Dexih.Utils.CopyProperties.Tests\
@@ -47,7 +41,7 @@ for:
   build_script:
   - appveyor-retry dotnet restore -v Minimal
   - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build -o ../../artifacts
+  - dotnet pack -c %CONFIGURATION% --no-build /p:Version={version} -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
   
@@ -61,7 +55,7 @@ for:
   build_script:
   - appveyor-retry dotnet restore -v Minimal
   - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build --version-suffix ALPHA -o ../../artifacts
+  - dotnet pack -c %CONFIGURATION% --no-build /p:Version={version}-ALPHA -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
   
