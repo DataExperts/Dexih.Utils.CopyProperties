@@ -17,6 +17,7 @@ install:
 environment:
   PATH: $(PATH);$(PROGRAMFILES)\dotnet\
 test_script:
+  - appveyor-retry dotnet restore -v Minimal
   - dotnet test
 artifacts:
   - path: artifacts\*.nupkg
