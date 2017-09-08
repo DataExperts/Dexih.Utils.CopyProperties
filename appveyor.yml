@@ -61,7 +61,7 @@ for:
   build_script:
   - appveyor-retry dotnet restore -v Minimal
   - dotnet build -c %CONFIGURATION%
-  - dotnet pack -c %CONFIGURATION% --no-build --version-suffix %LABEL% -o ../../artifacts
+  - dotnet pack -c %CONFIGURATION% --no-build --version-suffix ALPHA -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
   
