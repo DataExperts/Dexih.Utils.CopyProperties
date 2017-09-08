@@ -24,6 +24,9 @@ deploy:
     branch: 
      - test
      - release
+
+for:
+
 # The release branch publishes without the version suffix, making an official release.
 -
   branches:
