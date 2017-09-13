@@ -145,7 +145,7 @@ namespace Dexih.CopyProperties.Tests
     
             // confirm all properties were tested
             Assert.Equal(count, 17);
-            Assert.Equal(enumerableCount, 2);
+            Assert.Equal(enumerableCount, 4);
             Assert.Equal(childValueCount, 1);
         }
 
@@ -178,6 +178,10 @@ namespace Dexih.CopyProperties.Tests
             public ChildTest[] ChildArray { get; set; }
             public List<ChildTest> ChildList { get; set; }
 
+            public object[] EmptyArray { get; set; }
+
+            public InheritedCollection InheritedCollection { get; set; }
+
             public void InitSampleValues1()
             {
                 ByteValue = 1;
@@ -206,6 +210,9 @@ namespace Dexih.CopyProperties.Tests
                     new ChildTest() {Key = 2, Name = "value 2", Valid = true, IgnoreThis = "abc" },
                     new ChildTest() {Key = 3, Name = "value 3", Valid = true, IgnoreThis = "abc" },
                 };
+
+                EmptyArray = new object[0];
+                InheritedCollection = new InheritedCollection();
 
                 ChildList = ChildArray.ToList();
             }
@@ -267,6 +274,11 @@ namespace Dexih.CopyProperties.Tests
 
             [IgnoreCopy]
             public string IgnoreThis { get; set; }
+        }
+
+        public class InheritedCollection: List<object[]>
+        {
+
         }
 
     }

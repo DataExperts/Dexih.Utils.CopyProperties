@@ -114,8 +114,11 @@ namespace Dexih.Utils
                             targetProperty.SetValue(target, targetCollection);
                         }
 
-                        typeCollection = targetProperty.PropertyType.GetGenericArguments().Single();
-
+                        typeCollection = targetProperty.PropertyType.GetGenericArguments().SingleOrDefault();
+                        if(typeCollection == null)
+                        {
+                            typeCollection = targetProperty.PropertyType.GetTypeInfo().BaseType;
+                        }
                     }
                     else if(IsSimpleType(targetProperty.PropertyType))
                     {
