@@ -85,16 +85,14 @@ namespace Dexih.Utils
                     IEnumerable srcCollection = srcProp.GetValue(source, null) as IEnumerable;
                     IEnumerable targetCollection;
 
-                    Type collectionItemType = null;
-
                     // if this is an array, then temporarily use a list as the target collection.
                     if (targetProperty.PropertyType.IsArray)
                     {
-                        collectionItemType = targetProperty.PropertyType.GetElementType();
+                        var arrayItemType = targetProperty.PropertyType.GetElementType();
                         var targetArray = srcProp.GetValue(target, null) as IEnumerable;
                         if (targetArray == null)
                         {
-                            var listType = typeof(List<>).MakeGenericType(collectionItemType);
+                            var listType = typeof(List<>).MakeGenericType(arrayItemType);
                             targetCollection = (IEnumerable)Activator.CreateInstance(listType);
                         }
                         else
@@ -114,9 +112,6 @@ namespace Dexih.Utils
                             targetCollection = (IEnumerable)Activator.CreateInstance(targetProperty.PropertyType);
                             targetProperty.SetValue(target, targetCollection);
                         }
-
-                        //get a type reference for items in the collection.
-                        collectionItemType = targetProperty.PropertyType.CollectionItemType();
                     }
 
                     // if it is a simple type (aka string, int, etc), then copy it across.
@@ -153,7 +148,14 @@ namespace Dexih.Utils
                         throw new CopyPropertiesInvalidCollectionException($"The target object contains a collection ${targetCollection.GetType().ToString()} which does not contain an \"Add\" method.  The copy properties can only function with collections such as List<> which have an \"Add\" method");
                     }
 
+                    if(addMethod.GetParameters().Length != 1)
+                    {
+                        throw new CopyPropertiesInvalidCollectionException($"The target object contains a collection ${targetCollection.GetType().ToString()} contains an \"Add\" method which has more than one parameter.  The copy properties can only function with collections such as List<> which have simple \"Add\" method with one parameter.");
+                    }
+
+                    var collectionItemType = addMethod.GetParameters()[0].ParameterType;
                     var collectionProps = collectionItemType.GetProperties();
+
                     PropertyInfo keyAttribute = null;
                     CollectionKeyAttribute keyAttributeProperties = null;
                     PropertyInfo isValidAttribute = null;
@@ -320,21 +322,5 @@ namespace Dexih.Utils
             return typeof(IEnumerable).IsAssignableFrom(type);
         }
 
-        public static Type CollectionItemType(this Type pi)
-        {
-            var itemType = pi.GetGenericArguments().SingleOrDefault();
-
-            //if this is null, it means that collection is likely inherited
-            if (itemType == null)
-            {
-                itemType = pi.GetTypeInfo().BaseType;
-
-                if (itemType.IsNonStringEnumerable())
-                {
-                    return itemType.CollectionItemType();
-                }
-            }
-            return itemType;
-        }
     }
 }
