@@ -33,7 +33,7 @@ namespace Dexih.Utils
                 throw new CopyPropertiesSimpleTypeException(source);
             }
 
-             // Getting the Types of the objects
+            // Getting the Types of the objects
             var typeDest = target.GetType();
             var typeSrc = source.GetType();
 
@@ -85,16 +85,16 @@ namespace Dexih.Utils
                     IEnumerable srcCollection = srcProp.GetValue(source, null) as IEnumerable;
                     IEnumerable targetCollection;
 
-                    Type typeCollection;
+                    Type collectionItemType = null;
 
                     // if this is an array, then temporarily use a list as the target collection.
                     if (targetProperty.PropertyType.IsArray)
                     {
-                        typeCollection = targetProperty.PropertyType.GetElementType();
+                        collectionItemType = targetProperty.PropertyType.GetElementType();
                         var targetArray = srcProp.GetValue(target, null) as IEnumerable;
-                        if(targetArray == null)
+                        if (targetArray == null)
                         {
-                            var listType = typeof(List<>).MakeGenericType(typeCollection);
+                            var listType = typeof(List<>).MakeGenericType(collectionItemType);
                             targetCollection = (IEnumerable)Activator.CreateInstance(listType);
                         }
                         else
@@ -102,6 +102,7 @@ namespace Dexih.Utils
                             targetCollection = targetArray.Cast<object>().ToList();
                         }
                     }
+
                     // if the item is a collection, then iterate through each property
                     else if (srcProp.PropertyType.IsNonStringEnumerable() && srcProp.CanWrite)
                     {
@@ -114,17 +115,17 @@ namespace Dexih.Utils
                             targetProperty.SetValue(target, targetCollection);
                         }
 
-                        typeCollection = targetProperty.PropertyType.GetGenericArguments().SingleOrDefault();
-                        if(typeCollection == null)
-                        {
-                            typeCollection = targetProperty.PropertyType.GetTypeInfo().BaseType;
-                        }
+                        //get a type reference for items in the collection.
+                        collectionItemType = targetProperty.PropertyType.CollectionItemType();
                     }
-                    else if(IsSimpleType(targetProperty.PropertyType))
+
+                    // if it is a simple type (aka string, int, etc), then copy it across.
+                    else if (IsSimpleType(targetProperty.PropertyType))
                     {
                         targetProperty.SetValue(target, srcProp.GetValue(source, null), null);
                         continue;
                     }
+
                     else
                     {
                         var srcValue = srcProp.GetValue(source);
@@ -147,12 +148,12 @@ namespace Dexih.Utils
 
                     var addMethod = targetCollection.GetType().GetMethod("Add");
 
-                    if(addMethod == null)
+                    if (addMethod == null)
                     {
                         throw new CopyPropertiesInvalidCollectionException($"The target object contains a collection ${targetCollection.GetType().ToString()} which does not contain an \"Add\" method.  The copy properties can only function with collections such as List<> which have an \"Add\" method");
                     }
 
-                    var collectionProps = typeCollection.GetProperties();
+                    var collectionProps = collectionItemType.GetProperties();
                     PropertyInfo keyAttribute = null;
                     CollectionKeyAttribute keyAttributeProperties = null;
                     PropertyInfo isValidAttribute = null;
@@ -199,7 +200,7 @@ namespace Dexih.Utils
                                     {
                                         if (targetItem != null)
                                         {
-                                            throw new Exception($"The collections could not be merge due to multiple target key values of {keyvalue} in the collection {typeCollection}.");
+                                            throw new Exception($"The collections could not be merge due to multiple target key values of {keyvalue} in the collection {collectionItemType}.");
                                         }
                                         targetItem = matchItem;
                                     }
@@ -209,7 +210,7 @@ namespace Dexih.Utils
 
                         if (targetItem == null)
                         {
-                            targetItem = Activator.CreateInstance(typeCollection);
+                            targetItem = Activator.CreateInstance(collectionItemType);
                             item.CopyProperties(targetItem, false, collectionKeyValue);
                             addMethod.Invoke(targetCollection, new[] { targetItem });
                         }
@@ -237,9 +238,9 @@ namespace Dexih.Utils
                     // if the target is an array, copy the temporary collection back to an array.
                     if (srcProp.PropertyType.IsArray)
                     {
-                        var targetArray = Array.CreateInstance(typeCollection, targetCollection.Cast<object>().Count());
+                        var targetArray = Array.CreateInstance(collectionItemType, targetCollection.Cast<object>().Count());
                         var i = 0;
-                        foreach(object item in targetCollection)
+                        foreach (object item in targetCollection)
                         {
                             targetArray.SetValue(item, i);
                             i++;
@@ -282,7 +283,7 @@ namespace Dexih.Utils
         public static bool IsSimpleType(this Type type)
         {
             return
-                type.GetTypeInfo().IsPrimitive || 
+                type.GetTypeInfo().IsPrimitive ||
                 type.GetTypeInfo().IsEnum ||
                 new[] {
                     typeof(Enum),
@@ -317,6 +318,23 @@ namespace Dexih.Utils
             if (type == null || type == typeof(string))
                 return false;
             return typeof(IEnumerable).IsAssignableFrom(type);
+        }
+
+        public static Type CollectionItemType(this Type pi)
+        {
+            var itemType = pi.GetGenericArguments().SingleOrDefault();
+
+            //if this is null, it means that collection is likely inherited
+            if (itemType == null)
+            {
+                itemType = pi.GetTypeInfo().BaseType;
+
+                if (itemType.IsNonStringEnumerable())
+                {
+                    return itemType.CollectionItemType();
+                }
+            }
+            return itemType;
         }
     }
 }
