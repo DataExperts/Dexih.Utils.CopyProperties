@@ -170,6 +170,8 @@ namespace Dexih.CopyProperties.Tests
             public Guid GuidValue { get; set; }
             public ETest EnumValue { get; set; }
 
+            public ChildTest NullChildTest { get; set; } = null;
+
             [IgnoreCopy]
             public string IgnoreThis { get; set; }
 

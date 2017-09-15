@@ -22,7 +22,7 @@ namespace Dexih.Utils
         public static void CopyProperties(this object source, object target, bool onlySimpleProperties = false, object parentKeyValue = null)
         {
             // If source/dest are null throw an exception
-            if (source == null || target == null)
+            if (source == null)
             {
                 throw new CopyPropertiesNullException();
             }
@@ -125,13 +125,21 @@ namespace Dexih.Utils
                     {
                         var srcValue = srcProp.GetValue(source);
                         var targetValue = targetProperty.GetValue(target);
-                        if (targetValue == null)
-                        {
-                            targetValue = Activator.CreateInstance(targetProperty.PropertyType);
-                            targetProperty.SetValue(target, targetValue);
-                        }
 
-                        srcValue.CopyProperties(targetValue, false, null);
+                        if (srcValue == null)
+                        {
+                            targetProperty.SetValue(target, null);
+                        }
+                        else
+                        {
+                            if (targetValue == null)
+                            {
+                                targetValue = Activator.CreateInstance(targetProperty.PropertyType);
+                                targetProperty.SetValue(target, targetValue);
+                            }
+
+                            srcValue.CopyProperties(targetValue, false, null);
+                        }
                         continue;
                     }
 
