@@ -4,6 +4,7 @@ using Dexih.Utils;
 using Xunit;
 using System.Linq;
 using System.Collections;
+using Dexih.Utils.CopyProperties;
 
 namespace Dexih.CopyProperties.Tests
 {
