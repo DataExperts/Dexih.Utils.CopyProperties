@@ -45,7 +45,7 @@ namespace Dexih.Utils.CopyProperties
                 object collectionKeyValue = null;
                 foreach (var srcProp in srcProps)
                 {
-                    if (srcProp.GetCustomAttribute(typeof(CollectionKeyAttribute), true) != null)
+                    if (srcProp.GetCustomAttribute(typeof(CopyCollectionKeyAttribute), true) != null)
                     {
                         collectionKeyValue = srcProp.GetValue(source);
                     }
@@ -76,28 +76,21 @@ namespace Dexih.Utils.CopyProperties
                         continue;
                     }
 
-                    if (srcProp.GetCustomAttribute(typeof(IgnoreCopyAttribute), true) != null)
+                    // ignore attribute on the source property, then skip
+                    if (srcProp.GetCustomAttribute(typeof(CopyIgnoreAttribute), true) != null)
                     {
                         continue;
                     }
 
-                    // The [IgnoreCopy] attribute has been flaged
-                    if (targetProperty.GetCustomAttribute(typeof(IgnoreCopyAttribute), true) != null)
+                    // ignore attribute on the target property, then skip
+                    if (targetProperty.GetCustomAttribute(typeof(CopyIgnoreAttribute), true) != null)
                     {
                         continue;
                     }
 
                     if (!onlySimpleProperties)
                     {
-                        IEnumerable srcCollection;
-                        try
-                        {
-                            srcCollection = srcProp.GetValue(source, null) as IEnumerable;
-                        }
-                        catch (Exception ex)
-                        {
-                            throw ex;
-                        }
+                        IEnumerable srcCollection = srcProp.GetValue(source, null) as IEnumerable;
                         IEnumerable targetCollection;
 
                         // if this is an array, then temporarily use a list as the target collection.
@@ -180,17 +173,17 @@ namespace Dexih.Utils.CopyProperties
                         var collectionProps = collectionItemType.GetProperties();
 
                         PropertyInfo keyAttribute = null;
-                        CollectionKeyAttribute keyAttributeProperties = null;
+                        CopyCollectionKeyAttribute keyAttributeProperties = null;
                         PropertyInfo isValidAttribute = null;
 
                         foreach (var prop in collectionProps)
                         {
-                            if (prop != null && prop.GetCustomAttribute<CollectionKeyAttribute>(true) != null)
+                            if (prop != null && prop.GetCustomAttribute<CopyCollectionKeyAttribute>(true) != null)
                             {
                                 keyAttribute = prop;
-                                keyAttributeProperties = prop.GetCustomAttribute<CollectionKeyAttribute>(true);
+                                keyAttributeProperties = prop.GetCustomAttribute<CopyCollectionKeyAttribute>(true);
                             }
-                            if (prop != null && prop.GetCustomAttribute(typeof(IsValidAttribute), true) != null)
+                            if (prop != null && prop.GetCustomAttribute(typeof(CopyIsValidAttribute), true) != null)
                             {
                                 isValidAttribute = prop;
                             }
@@ -294,7 +287,7 @@ namespace Dexih.Utils.CopyProperties
                         continue;
                     }
 
-                    if (targetProperty.GetCustomAttribute(typeof(ParentCollectionKeyAttribute), true) != null && parentKeyValue != null)
+                    if (targetProperty.GetCustomAttribute(typeof(CopyParentCollectionKeyAttribute), true) != null && parentKeyValue != null)
                     {
                         targetProperty.SetValue(target, parentKeyValue);
                         continue;

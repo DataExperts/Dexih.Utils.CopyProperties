@@ -173,7 +173,7 @@ namespace Dexih.CopyProperties.Tests
 
             public ChildTest NullChildTest { get; set; } = null;
 
-            [IgnoreCopy]
+            [CopyIgnore]
             public string IgnoreThis { get; set; }
 
             public ChildTest ChildValue { get; set; }
@@ -280,15 +280,15 @@ namespace Dexih.CopyProperties.Tests
 
         public class ChildTest
         {
-            [CollectionKey(0)]
+            [CopyCollectionKey(0)]
             public int Key { get; set; }
 
             public string Name { get; set; }
 
-            [IsValid]
+            [CopyIsValid]
             public bool Valid { get; set; }
 
-            [IgnoreCopy]
+            [CopyIgnore]
             public string IgnoreThis { get; set; }
         }
 
