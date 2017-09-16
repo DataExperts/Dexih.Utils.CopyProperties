@@ -141,13 +141,44 @@ namespace Dexih.CopyProperties.Tests
                     Assert.Equal(item1.Name, item2.Name);
                     Assert.Equal(item1.Valid, item2.Valid);
                     Assert.NotEqual(item1.IgnoreThis, item2.IgnoreThis);
+
+                    //the child value is a copy, so we should be able to change value in the source without impacting target
+                    item1.Name = "chnaged name";
+                    Assert.NotEqual(item1.Name, item2.Name);
+                }
+
+                else if (property.Name == "ChildCopyReference")
+                {
+                    childValueCount++;
+
+                    var item1 = (ChildTest)property.GetValue(copyTest1);
+                    var item2 = (ChildTest)property.GetValue(copyTest2);
+
+                    Assert.Equal(item1.Key, item2.Key);
+                    Assert.Equal(item1.Name, item2.Name);
+                    Assert.Equal(item1.Valid, item2.Valid);
+                    Assert.Equal(item1.IgnoreThis, item2.IgnoreThis); //equal the parent object reference was copied so subproperties will be ignored.
+
+                    //the child value is a refernce, so we should be able to change value in the source and this will change target.
+                    item1.Name = "chnaged name";
+                    Assert.Equal(item1.Name, item2.Name);
+                }
+
+                else if (property.Name == "ChildNullTarget")
+                {
+                    childValueCount++;
+
+                    var item1 = (ChildTest)property.GetValue(copyTest1);
+                    var item2 = (ChildTest)property.GetValue(copyTest2);
+
+                    Assert.Null(item2);
                 }
             }
     
             // confirm all properties were tested
             Assert.Equal(count, 17);
             Assert.Equal(enumerableCount, 5);
-            Assert.Equal(childValueCount, 1);
+            Assert.Equal(childValueCount, 3);
         }
 
         public class CopyTest
@@ -178,6 +209,12 @@ namespace Dexih.CopyProperties.Tests
 
             public ChildTest ChildValue { get; set; }
 
+            [CopyNullTarget]
+            public ChildTest ChildNullTarget { get; set; } 
+
+            [CopyReference]
+            public ChildTest ChildCopyReference { get; set; } 
+
             public ChildTest[] ChildArray { get; set; }
             public List<ChildTest> ChildList { get; set; }
             public Children Children { get; set; }
@@ -207,6 +244,8 @@ namespace Dexih.CopyProperties.Tests
                 EnumValue = ETest.v1;
 
                 ChildValue = new ChildTest() { Key = 50, Name = "childValue", Valid = true, IgnoreThis = "abc" };
+                ChildNullTarget = ChildValue;
+                ChildCopyReference = ChildValue;
 
                 ChildArray = new ChildTest[]
                 {

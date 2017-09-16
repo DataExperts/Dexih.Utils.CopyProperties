@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Dexih.Utils.CopyProperties
 {
+    /// <summary>
+    /// Indicates a property is the "key" value in a collection.  When merging collections
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class CopyCollectionKeyAttribute : Attribute
     {
@@ -26,18 +29,45 @@ namespace Dexih.Utils.CopyProperties
         }
     }
 
+    /// <summary>
+    /// Indicates the property should be treated as an IsValid property.
+    /// If this is part of a record in a target collection, which is deleted, it will be set to false.
+    /// Otherwise it will be set to true.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class CopyIsValidAttribute : Attribute
     {
     }
 
+    /// <summary>
+    /// The property value will be set to the key value of the parent record.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class CopyParentCollectionKeyAttribute : Attribute
     {
     }
 
+    /// <summary>
+    /// Ignore this attribute completely.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class CopyIgnoreAttribute : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Directly copy the attribute reference.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class CopyReference : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Set the target value to null.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class CopyNullTarget : Attribute
     {
     }
 }

@@ -88,6 +88,20 @@ namespace Dexih.Utils.CopyProperties
                         continue;
                     }
 
+                    // set the target value to null
+                    if (targetProperty.GetCustomAttribute(typeof(CopyNullTarget), true) != null)
+                    {
+                        targetProperty.SetValue(target, null);
+                        continue;
+                    }
+
+                    // set the target value to null
+                    if (targetProperty.GetCustomAttribute(typeof(CopyReference), true) != null)
+                    {
+                        targetProperty.SetValue(target, srcProp.GetValue(source));
+                        continue;
+                    }
+
                     if (!onlySimpleProperties)
                     {
                         IEnumerable srcCollection = srcProp.GetValue(source, null) as IEnumerable;
