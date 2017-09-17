@@ -89,10 +89,28 @@ namespace Dexih.Utils.CopyProperties
                     }
 
                     // set the target value to null
-                    if (targetProperty.GetCustomAttribute(typeof(CopyNullTarget), true) != null)
+                    if (targetProperty.GetCustomAttribute(typeof(CopySetNull), true) != null)
                     {
                         targetProperty.SetValueIfchanged(target, null);
                         continue;
+                    }
+
+                    if (targetProperty.GetCustomAttribute(typeof(CopyIfTargetNull), true) != null)
+                    {
+                        // if target property is not null, the ignore and continue.
+                        if (targetProperty.GetValue(target) != null)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (targetProperty.GetCustomAttribute(typeof(CopyIfTargetNotNull), true) != null)
+                    {
+                        // if target value is null, then ignore and continue.
+                        if (targetProperty.GetValue(target) == null)
+                        {
+                            continue;
+                        }
                     }
 
                     // set the target value to null
@@ -171,6 +189,7 @@ namespace Dexih.Utils.CopyProperties
                             continue;
                         }
 
+                        //if a collection, get the "Add" method reference.
                         var addMethod = targetCollection.GetType().GetMethod("Add");
 
                         if (addMethod == null)
@@ -190,6 +209,7 @@ namespace Dexih.Utils.CopyProperties
                         CopyCollectionKeyAttribute keyAttributeProperties = null;
                         PropertyInfo isValidAttribute = null;
 
+                        // identity any properties containing a "CopyCollectionKey" or "CopyIsValid" attribute.
                         foreach (var prop in collectionProps)
                         {
                             if (prop != null && prop.GetCustomAttribute<CopyCollectionKeyAttribute>(true) != null)
@@ -203,15 +223,25 @@ namespace Dexih.Utils.CopyProperties
                             }
                         }
 
-                        // if there is an IsValid attribute, set all target items to isvalid = false.  
+                        // Loop through the target column and set any that don't exist to null.
                         if (isValidAttribute != null && keyAttribute != null)
                         {
                             foreach (var item in (IEnumerable)targetCollection)
                             {
-                                isValidAttribute.SetValueIfchanged(item, false);
+                                bool exists = false;
+                                foreach(var sourceItem in srcCollection)
+                                {
+                                    if(Equals(keyAttribute.GetValue(sourceItem), keyAttribute.GetValue(item)))
+                                    {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                isValidAttribute.SetValueIfchanged(item, exists);
                             }
                         }
 
+                        // loop through the sourcr collection.
                         foreach (var item in srcCollection)
                         {
                             object targetItem = null;
@@ -219,12 +249,8 @@ namespace Dexih.Utils.CopyProperties
                             if (keyAttribute != null && keyAttributeProperties != null)
                             {
                                 keyvalue = keyAttribute.GetValue(item);
-                                if (keyAttributeProperties.DefaultKeyValue != null && Equals(keyvalue, keyAttributeProperties.DefaultKeyValue))
-                                {
-
-                                }
-                                else
-                                {
+                                if (keyAttributeProperties.DefaultKeyValue == null || !Equals(keyvalue, keyAttributeProperties.DefaultKeyValue))
+                                { 
                                     foreach (var matchItem in (IEnumerable)targetCollection)
                                     {
                                         var targetValue = keyAttribute.GetValue(matchItem);
@@ -359,13 +385,19 @@ namespace Dexih.Utils.CopyProperties
 
         public static void SetValueIfchanged(this PropertyInfo property, object obj, object value)
         {
-            if (IsSimpleType(property.PropertyType) && property.GetValue(obj) != value)
+            if (IsSimpleType(property.PropertyType))
             {
-                property.SetValue(obj, value);
+                if (!Equals(property.GetValue(obj), value) || (property.GetValue(obj) == null && value != null) || (property.GetValue(obj) != null && value == null))
+                {
+                    property.SetValue(obj, value);
+                }
             }
             else
             {
-                property.SetValue(obj, value);
+                if ((property.GetValue(obj) == null && value != null) || (property.GetValue(obj) != null && value == null))
+                {
+                    property.SetValue(obj, value);
+                }
             }
 
         }

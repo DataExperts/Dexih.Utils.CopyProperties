@@ -209,7 +209,7 @@ namespace Dexih.CopyProperties.Tests
 
             public ChildTest ChildValue { get; set; }
 
-            [CopyNullTarget]
+            [CopySetNull]
             public ChildTest ChildNullTarget { get; set; } 
 
             [CopyReference]

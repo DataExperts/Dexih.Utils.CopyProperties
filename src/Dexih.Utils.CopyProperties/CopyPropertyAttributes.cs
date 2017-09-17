@@ -67,7 +67,23 @@ namespace Dexih.Utils.CopyProperties
     /// Set the target value to null.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopyNullTarget : Attribute
+    public class CopySetNull : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Only copies if the target element is null.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class CopyIfTargetNull : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Only copies if the target element is not null.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class CopyIfTargetNotNull : Attribute
     {
     }
 }
