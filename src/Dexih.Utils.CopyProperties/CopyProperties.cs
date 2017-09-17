@@ -113,6 +113,24 @@ namespace Dexih.Utils.CopyProperties
                         }
                     }
 
+                    if (targetProperty.GetCustomAttribute(typeof(CopyIfTargetDefault), true) != null)
+                    {
+                        // if target property is not null, the ignore and continue.
+                        if (targetProperty.GetValue(target) != Activator.CreateInstance(targetProperty.PropertyType))
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (targetProperty.GetCustomAttribute(typeof(CopyIfTargetNotDefault), true) != null)
+                    {
+                        // if target value is null, then ignore and continue.
+                        if (targetProperty.GetValue(target) == Activator.CreateInstance(targetProperty.PropertyType))
+                        {
+                            continue;
+                        }
+                    }
+
                     // set the target value to null
                     if (targetProperty.GetCustomAttribute(typeof(CopyReference), true) != null)
                     {

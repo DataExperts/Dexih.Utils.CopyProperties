@@ -86,4 +86,20 @@ namespace Dexih.Utils.CopyProperties
     public class CopyIfTargetNotNull : Attribute
     {
     }
+
+    /// <summary>
+    /// Only copies if the target element is the default value for the datatype.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class CopyIfTargetDefault : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Only copies if the target element is the default value for the datatype.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class CopyIfTargetNotDefault : Attribute
+    {
+    }
 }
