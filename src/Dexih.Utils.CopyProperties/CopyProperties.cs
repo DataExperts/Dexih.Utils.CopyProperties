@@ -91,14 +91,14 @@ namespace Dexih.Utils.CopyProperties
                     // set the target value to null
                     if (targetProperty.GetCustomAttribute(typeof(CopyNullTarget), true) != null)
                     {
-                        targetProperty.SetValue(target, null);
+                        targetProperty.SetValueIfchanged(target, null);
                         continue;
                     }
 
                     // set the target value to null
                     if (targetProperty.GetCustomAttribute(typeof(CopyReference), true) != null)
                     {
-                        targetProperty.SetValue(target, srcProp.GetValue(source));
+                        targetProperty.SetValueIfchanged(target, srcProp.GetValue(source));
                         continue;
                     }
 
@@ -132,14 +132,14 @@ namespace Dexih.Utils.CopyProperties
                             if (targetCollection == null)
                             {
                                 targetCollection = (IEnumerable)Activator.CreateInstance(targetProperty.PropertyType);
-                                targetProperty.SetValue(target, targetCollection);
+                                targetProperty.SetValueIfchanged(target, targetCollection);
                             }
                         }
 
                         // if it is a simple type (aka string, int, etc), then copy it across.
                         else if (IsSimpleType(targetProperty.PropertyType))
                         {
-                            targetProperty.SetValue(target, srcProp.GetValue(source, null), null);
+                            targetProperty.SetValueIfchanged(target, srcProp.GetValue(source, null));
                             continue;
                         }
 
@@ -150,14 +150,14 @@ namespace Dexih.Utils.CopyProperties
 
                             if (srcValue == null)
                             {
-                                targetProperty.SetValue(target, null);
+                                targetProperty.SetValueIfchanged(target, null);
                             }
                             else
                             {
                                 if (targetValue == null)
                                 {
                                     targetValue = Activator.CreateInstance(targetProperty.PropertyType);
-                                    targetProperty.SetValue(target, targetValue);
+                                    targetProperty.SetValueIfchanged(target, targetValue);
                                 }
 
                                 srcValue.CopyProperties(targetValue, false, null);
@@ -167,7 +167,7 @@ namespace Dexih.Utils.CopyProperties
 
                         if (srcCollection == null)
                         {
-                            targetProperty.SetValue(target, null);
+                            targetProperty.SetValueIfchanged(target, null);
                             continue;
                         }
 
@@ -208,7 +208,7 @@ namespace Dexih.Utils.CopyProperties
                         {
                             foreach (var item in (IEnumerable)targetCollection)
                             {
-                                isValidAttribute.SetValue(item, false);
+                                isValidAttribute.SetValueIfchanged(item, false);
                             }
                         }
 
@@ -262,7 +262,7 @@ namespace Dexih.Utils.CopyProperties
                                 var longValue = Convert.ToInt64(itemValue);
                                 if (longValue < 0)
                                 {
-                                    keyAttribute.SetValue(item, keyAttributeProperties.DefaultKeyValue);
+                                    keyAttribute.SetValueIfchanged(item, keyAttributeProperties.DefaultKeyValue);
                                 }
                             }
                         }
@@ -355,6 +355,19 @@ namespace Dexih.Utils.CopyProperties
             if (type == null || type == typeof(string))
                 return false;
             return typeof(IEnumerable).IsAssignableFrom(type);
+        }
+
+        public static void SetValueIfchanged(this PropertyInfo property, object obj, object value)
+        {
+            if (IsSimpleType(property.PropertyType) && property.GetValue(obj) != value)
+            {
+                property.SetValue(obj, value);
+            }
+            else
+            {
+                property.SetValue(obj, value);
+            }
+
         }
 
     }
