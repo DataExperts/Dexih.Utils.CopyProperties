@@ -19,13 +19,13 @@ namespace Dexih.Utils.CopyProperties
 
     public class CopyPropertiesSimpleTypeException : CopyPropertiesException
     {
-        public CopyPropertiesSimpleTypeException(object value) : base(ModifyMessage(value))
+        public CopyPropertiesSimpleTypeException(Type type) : base(ModifyMessage(type))
         {
         }
 
-        private static string ModifyMessage(object value)
+        private static string ModifyMessage(Type type)
         {
-            return $"The value {value} is not supported by the CopyProperties extension as it is a simple type.  Use \"var newValue = value\" to copy simple variable type.";
+            return $"The type {type.Name} is not supported by the CopyProperties extension as it is a simple type.  Use \"var newValue = value\" to copy simple variable type.";
         }
     }
 

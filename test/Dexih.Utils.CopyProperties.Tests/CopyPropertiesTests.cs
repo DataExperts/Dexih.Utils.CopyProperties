@@ -143,7 +143,7 @@ namespace Dexih.CopyProperties.Tests
                     Assert.NotEqual(item1.IgnoreThis, item2.IgnoreThis);
 
                     //the child value is a copy, so we should be able to change value in the source without impacting target
-                    item1.Name = "chnaged name";
+                    item1.Name = "changed name";
                     Assert.NotEqual(item1.Name, item2.Name);
                 }
 
@@ -159,8 +159,8 @@ namespace Dexih.CopyProperties.Tests
                     Assert.Equal(item1.Valid, item2.Valid);
                     Assert.Equal(item1.IgnoreThis, item2.IgnoreThis); //equal the parent object reference was copied so subproperties will be ignored.
 
-                    //the child value is a refernce, so we should be able to change value in the source and this will change target.
-                    item1.Name = "chnaged name";
+                    //the child value is a reference, so we should be able to change value in the source and this will change target.
+                    item1.Name = "changed name";
                     Assert.Equal(item1.Name, item2.Name);
                 }
 

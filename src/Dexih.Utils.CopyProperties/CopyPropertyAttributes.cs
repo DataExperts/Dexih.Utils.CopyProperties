@@ -59,7 +59,7 @@ namespace Dexih.Utils.CopyProperties
     /// Directly copy the attribute reference.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopyReference : Attribute
+    public class CopyReferenceAttribute : Attribute
     {
     }
 
@@ -67,7 +67,7 @@ namespace Dexih.Utils.CopyProperties
     /// Set the target value to null.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopySetNull : Attribute
+    public class CopySetNullAttribute : Attribute
     {
     }
 
@@ -75,7 +75,7 @@ namespace Dexih.Utils.CopyProperties
     /// Only copies if the target element is null.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopyIfTargetNull : Attribute
+    public class CopyIfTargetNullAttribute : Attribute
     {
     }
 
@@ -83,7 +83,7 @@ namespace Dexih.Utils.CopyProperties
     /// Only copies if the target element is not null.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopyIfTargetNotNull : Attribute
+    public class CopyIfTargetNotNullAttribute : Attribute
     {
     }
 
@@ -91,7 +91,7 @@ namespace Dexih.Utils.CopyProperties
     /// Only copies if the target element is the default value for the datatype.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopyIfTargetDefault : Attribute
+    public class CopyIfTargetDefaultAttribute : Attribute
     {
     }
 
@@ -99,7 +99,7 @@ namespace Dexih.Utils.CopyProperties
     /// Only copies if the target element is the default value for the datatype.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class CopyIfTargetNotDefault : Attribute
+    public class CopyIfTargetNotDefaultAttribute : Attribute
     {
     }
 }
