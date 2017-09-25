@@ -1,6 +1,6 @@
 # Dexih.Utils.CopyProperties
 
-[[build]:    https://ci.appveyor.com/project/dataexperts/dexih-utils-copyproperties
+[build]:    https://ci.appveyor.com/project/dataexperts/dexih-utils-copyproperties
 [build-img]: https://ci.appveyor.com/api/projects/status/y9i1n0992fxg5ci0?svg=true
 [nuget]:     https://www.nuget.org/packages/Dexih.Utils.CopyProperties
 [nuget-img]: https://badge.fury.io/nu/Dexih.Utils.CopyProperties.svg
