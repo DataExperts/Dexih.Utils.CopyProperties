@@ -132,6 +132,12 @@ namespace Dexih.CopyProperties.Tests
         }
 
         [Fact]
+        public void CloneSimpleArray()
+        {
+            var 
+        }
+
+        [Fact]
         public void CopyPropertiesArray()
         {
             var copyTestArray1 = new ChildTest[]

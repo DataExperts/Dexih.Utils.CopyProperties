@@ -14,13 +14,12 @@ namespace PerformanceCompare
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             var original = new SampleClass();
-            original.InitSamples(500000);
+            original.InitSamples(50);
 
             Console.WriteLine($"Time to create sample class: {stopwatch.Elapsed}");
 
             stopwatch.Restart();
-            var copyClass = new SampleClass();
-            original.CopyProperties(copyClass);
+            var copyClass = original.CloneProperties<SampleClass>();
 
             Console.WriteLine($"Time to copy empty class: {stopwatch.Elapsed} {copyClass.children.Count} ");
 
@@ -75,7 +74,6 @@ namespace PerformanceCompare
         public long key { get; set; }
 
         public string[] values { get; set; }
-
     }
 
 
