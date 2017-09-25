@@ -336,6 +336,20 @@ namespace Dexih.Utils.CopyProperties
                 throw new CopyPropertiesSimpleTypeException(propertyStructure.TargetType);
             }
 
+            // if there is a collectionKey, then store it for providing as the parentkey for recursive calls.
+            object collectionKeyValue = parentKeyValue;
+            foreach(var prop in propertyStructure.PropertyElements.Values.Where(c=>c.CopyCollectionKey))
+            {
+                if (prop.SourcePropertyInfo != null)
+                {
+                    collectionKeyValue = prop.SourcePropertyInfo.GetValue(source);
+                }
+                else if(prop.TargetPropertyInfo != null)
+                {
+                    collectionKeyValue = prop.TargetPropertyInfo.GetValue(target);
+                }
+            }
+
             //Create the target structure
             // if there is no collection key in the target, or there are no items, then simply copy the collection/array over.
             if (shallowCopy == false)
@@ -365,7 +379,7 @@ namespace Dexih.Utils.CopyProperties
                                 else
                                 {
                                     var targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
-                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
+                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, collectionKeyValue);
                                     targetArray.SetValue(targetItem, i);
                                 }
                                 i++;
@@ -389,7 +403,7 @@ namespace Dexih.Utils.CopyProperties
                                 else
                                 {
                                     var targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
-                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
+                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, collectionKeyValue);
                                     propertyStructure.AddMethod.Invoke(newTargetCollection, new[] { targetItem });
                                 }
                             }
@@ -429,7 +443,7 @@ namespace Dexih.Utils.CopyProperties
                                 targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
                             }
 
-                            item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
+                            item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, collectionKeyValue);
 
                             //set isvalid property to true.
                             if (propertyStructure.ItemIsValid != null)
@@ -574,8 +588,11 @@ namespace Dexih.Utils.CopyProperties
 
                     if (prop.CopyCollectionKey && prop.ResetNegativeKeys)
                     {
-                        prop.TargetPropertyInfo.SetValueIfchanged(target, prop.DefaultKeyValue);
-                        continue;
+                        if (Convert.ToDouble(prop.TargetPropertyInfo.GetValue(target)) < 0)
+                        {
+                            prop.TargetPropertyInfo.SetValueIfchanged(target, prop.DefaultKeyValue);
+                            continue;
+                        }
                     }
 
                     // can't read the source property.
@@ -604,12 +621,12 @@ namespace Dexih.Utils.CopyProperties
 
                         if (targetValue == null)
                         {
-                            sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false);
+                            sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false, collectionKeyValue);
                             prop.TargetPropertyInfo.SetValue(target, targetValue);
                         }
                         else
                         {
-                            sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false);
+                            sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false, collectionKeyValue);
                         }
 
                         continue;
