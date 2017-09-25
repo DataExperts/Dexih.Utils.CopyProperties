@@ -244,7 +244,9 @@ namespace Dexih.Utils.CopyProperties
 
         public static T CloneProperties<T>(this object source, bool shallowCopy = false)
         {
-            return (T)CloneProperties(source, shallowCopy);
+            var target = Activator.CreateInstance(typeof(T));
+            source.CopyProperties(ref target, shallowCopy);
+            return (T)target;
         }
 
         /// <summary>
