@@ -20,26 +20,68 @@ namespace Dexih.Utils.CopyProperties
         /// <param name="target">The destination object</param>
         /// <param name="onlySimpleProperties">Indicates only simple values will be copied such as string, int, date etc.  This includes any properties that can be copied with a simple "=". </param>
         /// <param name="parentKeyValue">The destination object</param>
-        public static Dictionary<string, PropertyElement> GetPropertyElement(Type sourceType, Type targetType)
+        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType)
         {
-            var sourceProps = sourceType.GetProperties();
-            var targetProps = targetType.GetProperties();
+            var propertyStructure = new PropertyStructure();
+            propertyStructure.IsSimpleType = IsSimpleType(sourceType);
+            propertyStructure.SourceType = sourceType;
+            propertyStructure.TargetType = targetType;
 
-            // if this is a simple type, throw exception.
-            if (IsSimpleType(sourceType))
+            // if this is a simple type, we're done.
+            if (propertyStructure.IsSimpleType)
             {
-                // throw new CopyPropertiesSimpleTypeException(sourceType);
-                return null;
+                return propertyStructure;
             }
 
-            Dictionary<string, PropertyElement> properties = new Dictionary<string, PropertyElement>();
-            
+            // if the structure is a collection, or array
+            if (typeof(IEnumerable).IsAssignableFrom(sourceType))
+            {
+                Type sourceItemType = GetItemElementType(sourceType);
+
+                propertyStructure.IsSourceEnumerable = true;
+
+                if (targetType.IsArray)
+                {
+                    propertyStructure.IsTargetArray = true;
+                    var targetItemType = targetType.GetElementType();
+                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
+                    if (propertyStructure.ItemStructure.PropertyElements != null)
+                    {
+                        propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey);
+                        propertyStructure.ItemIsValid = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyIsValid);
+                    }
+                }
+                else if (typeof(IEnumerable).IsAssignableFrom(targetType))
+                {
+                    propertyStructure.AddMethod = targetType.GetMethod(nameof(ICollection<object>.Add));
+                    var targetItemType = propertyStructure.AddMethod.GetParameters()[0].ParameterType;
+                    propertyStructure.IsTargetCollection = true;
+                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
+                    if (propertyStructure.ItemStructure.PropertyElements != null)
+                    {
+                        propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey);
+                        propertyStructure.ItemIsValid = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyIsValid);
+                    }
+                }
+                else
+                {
+                    throw new CopyPropertiesInvalidCollectionException($"The source property {sourceType.Name} is a collection, however the target {targetType.Name} is not.");
+                }
+            }
+
+            // add any properties to the structure.
+            var sourceProps = sourceType.GetProperties();
+
             foreach (var srcProp in sourceProps)
             {
-                var propertyElement = new PropertyElement();
-                properties.Add(srcProp.Name, propertyElement);
+                // if this is an indexed property (such as Item in a list), then skip.
+                if(srcProp.GetIndexParameters().Count() > 0)
+                {
+                    continue;
+                }
 
-                propertyElement.SourcePropertyInfo = srcProp;
+                var propertyElement = new PropertyElement();
+                propertyStructure.PropertyElements.Add(srcProp.Name, propertyElement);
 
                 var attrbitues = srcProp.GetCustomAttributes();
 
@@ -76,7 +118,7 @@ namespace Dexih.Utils.CopyProperties
                             propertyElement.CopyIsValid = true;
                             break;
                         case CopyParentCollectionKeyAttribute a:
-                            propertyElement.CopyCollectionKey = true;
+                            propertyElement.CopyParentCollectionKey = true;
                             break;
                         case CopyReferenceAttribute a:
                             propertyElement.CopyReference = true;
@@ -84,31 +126,34 @@ namespace Dexih.Utils.CopyProperties
                     }
                 }
 
-                if(sourceType == targetType)
+                propertyElement.SourcePropertyInfo = srcProp;
+                if (sourceType == targetType)
                 {
                     propertyElement.TargetPropertyInfo = srcProp;
-                    GetPropertyCollectionInfo(propertyElement, srcProp, srcProp);
+                    if (!propertyElement.CopyIgnore)
+                    {
+                        propertyElement.PropertyStructure = GetPropertyStructure(srcProp.PropertyType, srcProp.PropertyType);
+                    }
                 }
             }
 
             if (targetType != sourceType)
             {
+                var targetProps = targetType.GetProperties();
 
                 foreach (var targetProp in targetProps)
                 {
                     var propertyElement = new PropertyElement();
 
-                    if (properties.ContainsKey(targetProp.Name))
+                    if (propertyStructure.PropertyElements.ContainsKey(targetProp.Name))
                     {
-                        propertyElement = properties[targetProp.Name];
+                        propertyElement = propertyStructure.PropertyElements[targetProp.Name];
                     }
                     else
                     {
                         propertyElement = new PropertyElement();
-                        properties.Add(targetProp.Name, propertyElement);
+                        propertyStructure.PropertyElements.Add(targetProp.Name, propertyElement);
                     }
-
-                    propertyElement.TargetPropertyInfo = targetProp;
 
                     var attrbitues = targetProp.GetCustomAttributes();
 
@@ -145,7 +190,7 @@ namespace Dexih.Utils.CopyProperties
                                 propertyElement.CopyIsValid = true;
                                 break;
                             case CopyParentCollectionKeyAttribute a:
-                                propertyElement.CopyCollectionKey = true;
+                                propertyElement.CopyParentCollectionKey = true;
                                 break;
                             case CopyReferenceAttribute a:
                                 propertyElement.CopyReference = true;
@@ -153,75 +198,57 @@ namespace Dexih.Utils.CopyProperties
                         }
                     }
 
-                    if (propertyElement.SourcePropertyInfo != null)
+                    propertyElement.TargetPropertyInfo = targetProp;
+
+
+                    if (!propertyElement.CopyIgnore && propertyElement.SourcePropertyInfo != null)
                     {
-                        GetPropertyCollectionInfo(propertyElement, propertyElement.SourcePropertyInfo, targetProp);
+                        propertyElement.PropertyStructure = GetPropertyStructure(propertyElement.SourcePropertyInfo.PropertyType, targetProp.PropertyType);
                     }
 
                 }
             }
 
-            return properties;
+            return propertyStructure;
         }
 
-        private static void GetPropertyCollectionInfo(PropertyElement propertyElement, PropertyInfo sourceProp, PropertyInfo targetProp)
+        public static T CloneProperties<T>(this object source, bool shallowCopy = false)
         {
-
-            if(sourceProp.PropertyType == typeof(string))
-            {
-                propertyElement.IsSimpleType = true;
-            }
-            else if (typeof(IEnumerable).IsAssignableFrom(sourceProp.PropertyType))
-            {
-                Type sourceItemType = GetItemElementType(sourceProp.PropertyType);
-
-                propertyElement.IsSourceEnumerable = true;
-
-                if (targetProp.PropertyType.IsArray)
-                {
-                    propertyElement.IsTargetArray = true;
-                    var targetItemType = targetProp.PropertyType.GetElementType();
-                    propertyElement.ItemType = targetItemType;
-                    propertyElement.ItemPropertyElements = GetPropertyElement(sourceItemType, targetItemType);
-                }
-                else if (typeof(IEnumerable).IsAssignableFrom(targetProp.PropertyType))
-                {
-                    propertyElement.AddMethod = targetProp.PropertyType.GetMethod("Add");
-
-                    if (propertyElement.AddMethod == null)
-                    {
-                        throw new CopyPropertiesInvalidCollectionException($"The target object contains a collection ${sourceProp.GetType().Name} which does not contain an \"Add\" method.  The copy properties can only function with collections such as List<> which have an \"Add\" method");
-                    }
-
-                    if (propertyElement.AddMethod.GetParameters().Length != 1)
-                    {
-                        throw new CopyPropertiesInvalidCollectionException($"The target object contains a collection ${sourceProp.GetType().Name} contains an \"Add\" method which has more than one parameter.  The copy properties can only function with collections such as List<> which have simple \"Add\" method with one parameter.");
-                    }
-
-                    var targetItemType = propertyElement.AddMethod.GetParameters()[0].ParameterType;
-                    propertyElement.IsTargetCollection = true;
-                    propertyElement.ItemType = targetItemType;
-                    propertyElement.ItemPropertyElements = GetPropertyElement(sourceItemType, targetItemType);
-                    propertyElement.ItemCollectionKey = propertyElement.ItemPropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey);
-                    propertyElement.ItemIsValid = propertyElement.ItemPropertyElements.Values.SingleOrDefault(c => c.CopyIsValid);
-                }
-                else
-                {
-                    throw new CopyPropertiesInvalidCollectionException($"The source property {sourceProp.Name} is a collection, however the target {targetProp.Name} is not.");
-                }
-            }
-            else if (IsSimpleType(sourceProp.PropertyType))
-            {
-                propertyElement.IsSimpleType = true;
-            }
-            else
-            {
-                propertyElement.ItemType = targetProp.PropertyType;
-                propertyElement.ItemPropertyElements = GetPropertyElement(sourceProp.PropertyType, targetProp.PropertyType);
-            }
+            return (T)CloneProperties(source, shallowCopy);
         }
 
-        public static void CopyProperties(this object source, object target, bool onlySimpleProperties = false)
+        /// <summary>
+        /// Clone the properties from the source object.
+        /// Note: this will only copy object proerties (i.e declared with get/set).
+        /// </summary>
+        /// <param name="source">The source object.</param>
+        /// <param name="shallowCopy">Set true to performa a shallow copy, otherwise will perform a deep copy.</param>
+        /// <returns></returns>
+        public static object CloneProperties(this object source, bool shallowCopy = false)
+        {
+            // If source is null throw an exception
+            if (source == null)
+            {
+                throw new CopyPropertiesNullException();
+            }
+
+            var srcType = source.GetType();
+            var properties = GetPropertyStructure(srcType, srcType);
+            object target = null;
+
+            CopyProperties(source, ref target, properties, shallowCopy, null);
+
+            return target;
+        }
+
+        /// <summary>
+        /// Performance a copy/merge between two objects.  
+        /// Note: this will only copy object proerties (i.e declared with get/set).
+        /// </summary>
+        /// <param name="source">The source object</param>
+        /// <param name="target">The target object</param>
+        /// <param name="shallowCopy">Set true to performa a shallow copy, otherwise will perform a deep copy.</param>
+        public static void CopyProperties(this object source, object target, bool shallowCopy = false)
         {
             // If source is null throw an exception
             if (source == null)
@@ -232,14 +259,14 @@ namespace Dexih.Utils.CopyProperties
             var srcType = source.GetType();
             var targetType = target.GetType();
 
-            var properties = GetPropertyElement(srcType, targetType);
+            var properties = GetPropertyStructure(srcType, targetType);
 
-            if(properties == null)
+            if(properties.IsSimpleType)
             {
                 throw new CopyPropertiesSimpleTypeException(srcType);
             }
 
-            CopyProperties(source, target, properties, onlySimpleProperties, null);
+            CopyProperties(source, ref target, properties, shallowCopy, null);
         }
 
         /// <summary>
@@ -248,41 +275,186 @@ namespace Dexih.Utils.CopyProperties
         /// </summary>
         /// <param name="source">The source object</param>
         /// <param name="target">The destination object</param>
-        /// <param name="onlySimpleProperties">Indicates only simple values will be copied such as string, int, date etc.  This includes any properties that can be copied with a simple "=". </param>
+        /// <param name="shallowCopy">Indicates only simple values will be copied such as string, int, date etc.  This includes any properties that can be copied with a simple "=". </param>
         /// <param name="parentKeyValue">The destination object</param>
-        public static void CopyProperties(this object source, object target, Dictionary<string, PropertyElement> properties, bool onlySimpleProperties = false, object parentKeyValue = null)
+        public static void CopyProperties(this object source, ref object target, PropertyStructure propertyStructure, bool shallowCopy = false, object parentKeyValue = null)
         { 
             // If source is null throw an exception
-            if (source == null || properties == null)
+            if (source == null || propertyStructure == null)
             {
                 throw new CopyPropertiesNullException();
             }
 
-
-            // get the collectionKey value first
-            object collectionKeyValue = null;
-            foreach (var prop in properties.Values)
+            if(propertyStructure.IsSimpleType)
             {
-                if (prop.CopyParentCollectionKey)
+                throw new CopyPropertiesSimpleTypeException(propertyStructure.TargetType);
+            }
+
+            //Create the target structure
+            // if there is no collection key in the target, or there are no items, then simply copy the collection/array over.
+            if (shallowCopy == false)
+            {
+                if (propertyStructure.IsSourceEnumerable)
                 {
-                    collectionKeyValue = prop.SourcePropertyInfo.GetValue(source);
-                    break;
+                    IEnumerable sourceCollection = source as IEnumerable;
+                    IEnumerable targetCollection = target as IEnumerable;
+                    if (propertyStructure.ItemCollectionKey == null || targetCollection == null || !targetCollection.GetEnumerator().MoveNext())
+                    {
+                        if (propertyStructure.IsTargetArray)
+                        {
+                            var targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, sourceCollection.Cast<object>().Count()) as Array;
+                            var i = 0;
+                            foreach (var item in sourceCollection)
+                            {
+                                if (propertyStructure.ItemStructure.IsSimpleType)
+                                {
+                                    targetArray.SetValue(item, i);
+                                }
+                                else
+                                {
+                                    var targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
+                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
+                                    targetArray.SetValue(targetItem, i);
+                                    i++;
+                                }
+                            }
+
+                            target = targetArray;
+                        }
+                        else if (propertyStructure.IsTargetCollection)
+                        {
+                            IEnumerable newTargetCollection = (IEnumerable) targetCollection;
+                            if (newTargetCollection == null)
+                            {
+                                newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
+                            }
+                            foreach (var item in sourceCollection)
+                            {
+                                if (propertyStructure.ItemStructure.IsSimpleType)
+                                {
+                                    propertyStructure.AddMethod.Invoke(newTargetCollection, new[] { item });
+                                }
+                                else
+                                {
+                                    var targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
+                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
+                                    propertyStructure.AddMethod.Invoke(newTargetCollection, new[] { targetItem });
+                                }
+                            }
+
+                            target = newTargetCollection;
+                        }
+                        else
+                        {
+                            throw new CopyPropertiesInvalidCollectionException($"The source is a collection, howeve the equivalent target property is {propertyStructure.TargetType.Name}.");
+                        }
+                    }
+                    else
+                    {
+                        // if there is a collectionKey, then attempt a delta.
+
+                        // create a dictionary, with the key as index, and copy target items to it.
+                        Dictionary<object, object> indexedTargetCollection = new Dictionary<object, object>();
+                        targetCollection.GetEnumerator().Reset();
+                        foreach (var item in targetCollection)
+                        {
+                            var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
+                            indexedTargetCollection.Add(key, item);
+                        }
+
+                        // create a temporary indexed targetcollection, and merge all source items to it.
+                        Dictionary<object, object> newIndexedTargetCollection = new Dictionary<object, object>();
+                        foreach (var item in sourceCollection)
+                        {
+                            var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
+                            object targetItem;
+                            if (indexedTargetCollection.ContainsKey(key))
+                            {
+                                targetItem = indexedTargetCollection[key];
+                            }
+                            else
+                            {
+                                targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
+                            }
+
+                            item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
+
+                            //set isvalid property to true.
+                            if (propertyStructure.ItemIsValid != null)
+                            {
+                                propertyStructure.ItemIsValid.TargetPropertyInfo.SetValue(item, true);
+                            }
+
+                            newIndexedTargetCollection.Add(key, targetItem);
+                        }
+
+                        //if there is an invalid property, copy any deleted items back into the target collection
+                        // with the invalid property set to false.
+                        if (propertyStructure.ItemIsValid != null)
+                        {
+                            foreach (var item in indexedTargetCollection.Values)
+                            {
+                                var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
+                                if (!newIndexedTargetCollection.ContainsKey(key))
+                                {
+                                    propertyStructure.ItemIsValid.TargetPropertyInfo.SetValue(item, false);
+                                    newIndexedTargetCollection.Add(key, item);
+                                }
+                            }
+                        }
+
+                        if (propertyStructure.IsTargetArray)
+                        {
+                            Array targetArray = (Array)targetCollection;
+                            if (targetArray.Length != newIndexedTargetCollection.Count)
+                            {
+                                targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, newIndexedTargetCollection.Count) as Array;
+                            }
+
+                            var i = 0;
+                            foreach (var item in newIndexedTargetCollection)
+                            {
+                                targetArray.SetValue(item, i);
+                                i++;
+                            }
+
+                            target = targetArray;
+                        }
+                        else if (propertyStructure.IsTargetCollection)
+                        {
+                            var newTargetCollection = (IEnumerable)targetCollection;
+                            if (newTargetCollection == null)
+                            {
+                                newTargetCollection = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType) as IEnumerable;
+                            }
+                            foreach (var item in newIndexedTargetCollection.Values)
+                            {
+                                propertyStructure.AddMethod.Invoke(newTargetCollection, new[] { item });
+                            }
+
+                            target = newTargetCollection;
+                        }
+                        else
+                        {
+                            throw new CopyPropertiesInvalidCollectionException($"The source is a collection, however the equivalent target property is {propertyStructure.TargetType.Name}.");
+                        }
+                    }
                 }
             }
 
+            if(target == null)
+            {
+                target = Activator.CreateInstance(propertyStructure.TargetType);
+            }
+
+
             // loop through each property in the object.
-            foreach (var prop in properties.Values)
+            foreach (var prop in propertyStructure.PropertyElements.Values)
             {
                 try
                 {
                     // no matching target property, then continue
                     if (prop.TargetPropertyInfo == null)
-                    {
-                        continue;
-                    }
-
-                    // can't read the source property.
-                    if (!prop.SourcePropertyInfo.CanRead)
                     {
                         continue;
                     }
@@ -354,174 +526,41 @@ namespace Dexih.Utils.CopyProperties
                         continue;
                     }
 
+                    // can't read the source property.
+                    if (prop.SourcePropertyInfo == null || !prop.SourcePropertyInfo.CanRead)
+                    {
+                        continue;
+                    }
+                   
                     // do a normal copy
-                    if (prop.CopyReference || prop.IsSimpleType)
+                    if (prop.CopyReference || prop.PropertyStructure.IsSimpleType)
                     {
                         prop.TargetPropertyInfo.SetValueIfchanged(target, prop.SourcePropertyInfo.GetValue(source));
                         continue;
                     }
 
-                    if (!onlySimpleProperties)
+                    if (!shallowCopy)
                     {
-                        if (prop.IsSourceEnumerable)
+                        var sourceValue = prop.SourcePropertyInfo.GetValue(source);
+                        var targetValue = prop.TargetPropertyInfo.GetValue(target);
+
+                        if (sourceValue == null)
                         {
-                            IEnumerable sourceCollection = prop.SourcePropertyInfo.GetValue(source, null) as IEnumerable;
-                            IEnumerable targetCollection = prop.TargetPropertyInfo.GetValue(target, null) as IEnumerable;
-
-                            // if there is no collection key in the target, or there are no items, then simply copy the collection/array over.
-                            if (prop.ItemCollectionKey == null || targetCollection == null || !targetCollection.GetEnumerator().MoveNext())
-                            {
-                                if (prop.IsTargetArray)
-                                {
-                                    var targetArray = Array.CreateInstance(prop.ItemType, sourceCollection.Cast<object>().Count()) as Array;
-                                    var i = 0;
-                                    foreach (var item in sourceCollection)
-                                    {
-                                        if (prop.ItemPropertyElements == null)
-                                        {
-                                            targetArray.SetValue(item, i);
-                                        }
-                                        else
-                                        {
-                                            var targetItem = Activator.CreateInstance(prop.ItemType);
-                                            item.CopyProperties(targetItem, prop.ItemPropertyElements, false, collectionKeyValue);
-                                            targetArray.SetValue(targetItem, i);
-                                            i++;
-                                        }
-                                    }
-
-                                    prop.TargetPropertyInfo.SetValue(target, targetArray);
-                                    continue;
-                                }
-                                else if (prop.IsTargetCollection)
-                                {
-                                    var newTargetCollection = Activator.CreateInstance(prop.TargetPropertyInfo.PropertyType) as IEnumerable;
-                                    foreach (var item in sourceCollection)
-                                    {
-                                        if (prop.ItemPropertyElements == null)
-                                        {
-                                            prop.AddMethod.Invoke(newTargetCollection, new[] { item });
-                                        }
-                                        else
-                                        {
-                                            var targetItem = Activator.CreateInstance(prop.ItemType);
-                                            item.CopyProperties(targetItem, prop.ItemPropertyElements, false, collectionKeyValue);
-                                            prop.AddMethod.Invoke(newTargetCollection, new[] { targetItem });
-                                        }
-                                    }
-
-                                    prop.TargetPropertyInfo.SetValue(target, newTargetCollection);
-                                    continue;
-                                }
-                                else
-                                {
-                                    throw new CopyPropertiesInvalidCollectionException($"The source is a collection, howeve the equivalent target property is {prop.TargetPropertyInfo.PropertyType.Name}.");
-                                }
-                            }
-                            else
-                            {
-                                // if there is a collectionKey, then attempt a delta.
-
-                                // create a dictionary, with the key as index, and copy target items to it.
-                                Dictionary<object, object> indexedTargetCollection = new Dictionary<object, object>();
-                                targetCollection.GetEnumerator().Reset();
-                                foreach (var item in targetCollection)
-                                {
-                                    var targetItem = Activator.CreateInstance(prop.ItemType);
-                                    var key = prop.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
-                                    indexedTargetCollection.Add(key, item);
-                                }
-
-                                // create a temporary indexed targetcollection, and merge all source items to it.
-                                Dictionary<object, object> newIndexedTargetCollection = new Dictionary<object, object>();
-                                foreach (var item in sourceCollection)
-                                {
-                                    var key = prop.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
-                                    object targetItem;
-                                    if (indexedTargetCollection.ContainsKey(key))
-                                    {
-                                        targetItem = indexedTargetCollection[key];
-                                    }
-                                    else
-                                    {
-                                        targetItem = Activator.CreateInstance(prop.ItemType);
-                                    }
-
-                                    item.CopyProperties(targetItem, prop.ItemPropertyElements, false, collectionKeyValue);
-
-                                    //set isvalid property to true.
-                                    if (prop.ItemIsValid != null)
-                                    {
-                                        prop.ItemIsValid.TargetPropertyInfo.SetValue(item, true);
-                                    }
-
-                                    newIndexedTargetCollection.Add(key, targetItem);
-                                }
-
-                                //if there is an invalid property, copy any deleted items back into the target collection
-                                // with the invalid property set to false.
-                                if (prop.ItemIsValid != null)
-                                {
-                                    foreach (var item in indexedTargetCollection.Values)
-                                    {
-                                        var key = prop.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
-                                        if (!newIndexedTargetCollection.ContainsKey(key))
-                                        {
-                                            prop.ItemIsValid.TargetPropertyInfo.SetValue(item, false);
-                                            newIndexedTargetCollection.Add(key, item);
-                                        }
-                                    }
-                                }
-
-                                if (prop.IsTargetArray)
-                                {
-                                    var targetArray = Array.CreateInstance(prop.ItemType, newIndexedTargetCollection.Count) as Array;
-                                    var i = 0;
-                                    foreach (var item in newIndexedTargetCollection)
-                                    {
-                                        targetArray.SetValue(item, i);
-                                        i++;
-                                    }
-
-                                    prop.TargetPropertyInfo.SetValue(target, targetArray);
-                                    continue;
-                                }
-                                else if (prop.IsTargetCollection)
-                                {
-                                    var newTargetCollection = Activator.CreateInstance(prop.TargetPropertyInfo.PropertyType) as IEnumerable;
-                                    foreach (var item in newIndexedTargetCollection.Values)
-                                    {
-                                        prop.AddMethod.Invoke(newTargetCollection, new[] { item });
-                                    }
-
-                                    prop.TargetPropertyInfo.SetValue(target, newTargetCollection);
-                                    continue;
-                                }
-                                else
-                                {
-                                    throw new CopyPropertiesInvalidCollectionException($"The source is a collection, howeve the equivalent target property is {prop.TargetPropertyInfo.PropertyType.Name}.");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var sourceValue = prop.SourcePropertyInfo.GetValue(source);
-                            if(sourceValue == null)
-                            {
-                                prop.TargetPropertyInfo.SetValue(target, null);
-                                continue;
-                            }
-
-                            var targetValue = prop.TargetPropertyInfo.GetValue(target);
-                            if(targetValue == null)
-                            {
-                                targetValue = Activator.CreateInstance(prop.TargetPropertyInfo.PropertyType);
-                                prop.TargetPropertyInfo.SetValue(target, targetValue);
-                            }
-                            sourceValue.CopyProperties(targetValue, prop.ItemPropertyElements, false);
+                            prop.TargetPropertyInfo.SetValue(target, null);
                             continue;
                         }
 
+                        if (targetValue == null)
+                        {
+                            sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false);
+                            prop.TargetPropertyInfo.SetValue(target, targetValue);
+                        }
+                        else
+                        {
+                            sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false);
+                        }
+
+                        continue;
                     }
 
                     // throw new CopyPropertiesException($"CopyProperties failed in property {source.GetType().Name}.  Unknown error.");
@@ -534,7 +573,8 @@ namespace Dexih.Utils.CopyProperties
             }
         }
 
-        public static bool IsSimpleType(this Type type)
+
+             public static bool IsSimpleType(this Type type)
         {
             var typeInfo = type.GetTypeInfo();
             return

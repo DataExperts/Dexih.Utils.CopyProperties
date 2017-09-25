@@ -87,6 +87,69 @@ namespace Dexih.CopyProperties.Tests
         }
 
         [Fact]
+        public void CopyPropertiesHashSet()
+        {
+            var hashSet = new HashSet<string>() { "123", "456", "789" };
+            var hashSet2 = hashSet.CloneProperties<HashSet<string>>();
+
+            Assert.Equal(3, hashSet2.Count);
+            Assert.Equal("123", hashSet2.ElementAt(0));
+            Assert.Equal("456", hashSet2.ElementAt(1));
+            Assert.Equal("789", hashSet2.ElementAt(2));
+           
+        }
+
+        [Fact]
+        public void CopyPropertiesArray()
+        {
+            var copyTestArray1 = new ChildTest[]
+            {
+                    new ChildTest() {Key = 1, Name = "value 1", Valid = true, IgnoreThis = "abc" },
+                    new ChildTest() {Key = 2, Name = "value 2", Valid = true, IgnoreThis = "abc" },
+                    new ChildTest() {Key = 3, Name = "value 3", Valid = true, IgnoreThis = "abc" },
+            };
+
+            var copyTestArray2 = (ChildTest[]) copyTestArray1.CloneProperties();
+
+            Assert.Equal(3, copyTestArray2.Count());
+            for (var i = 0; i < copyTestArray1.Length; i++)
+            {
+                Assert.Equal(copyTestArray1[i].Key, copyTestArray2[i].Key);
+                Assert.Equal(copyTestArray1[i].Name, copyTestArray2[i].Name);
+                Assert.Equal(copyTestArray1[i].Valid, copyTestArray2[i].Valid);
+                Assert.NotEqual(copyTestArray1[i].IgnoreThis, copyTestArray2[i].IgnoreThis);
+            }
+        }
+
+        [Fact]
+        public void CopyPropertyMixedCollection()
+        {
+            var mixed = new MixedCollection();
+            mixed.string1 = "abc";
+            mixed.int1 = 2;
+
+            mixed.Add("123");
+            mixed.Add("456");
+            mixed.Add("789");
+
+            var mixed2 = mixed.CloneProperties<MixedCollection>();
+
+            Assert.Equal(3, mixed2.Count);
+            Assert.Equal("abc", mixed2.string1);
+            Assert.Equal(2, mixed2.int1);
+            Assert.Equal("123", mixed2[0]);
+            Assert.Equal("456", mixed2[1]);
+            Assert.Equal("789", mixed2[2]);
+
+        }
+
+        public class MixedCollection : List<string>
+        {
+            public string string1 { get; set; }
+            public int int1 { get; set; }
+        }
+
+        [Fact]
         public void CopyPropertiesArrayLists()
         {
 

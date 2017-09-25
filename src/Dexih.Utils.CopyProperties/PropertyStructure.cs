@@ -5,9 +5,45 @@ using System.Text;
 
 namespace Dexih.Utils.CopyProperties
 {
+    public class PropertyStructure
+    {
+        public Dictionary<string, PropertyElement> PropertyElements { get; set; } = new Dictionary<string, PropertyElement>();
+
+        /// <summary>
+        /// Indicates a simple type (such as string, int, etc).
+        /// </summary>
+        public bool IsSimpleType { get; set; } = false;
+
+        public Type SourceType { get; set; }
+        public Type TargetType { get; set;
+        }
+        public bool IsSourceEnumerable { get; set; } = false;
+
+        public bool IsTargetArray { get; set; } = false;
+
+        public bool IsTargetCollection { get; set; } = false;
+        public MethodInfo AddMethod { get; set; }
+
+        /// <summary>
+        /// If the property is a collection, this is the structure for each item in the collection.
+        /// </summary>
+        public PropertyStructure ItemStructure { get; set; }
+
+        /// <summary>
+        /// A reference to the property set with the collectionKey attribute.
+        /// </summary>
+        public PropertyElement ItemCollectionKey { get; set; }
+
+        /// <summary>
+        /// A reference to the property set with the isValid attribute.
+        /// </summary>
+        public PropertyElement ItemIsValid { get; set; }
+
+    }
+
     public class PropertyElement
     {
-
+        public PropertyStructure PropertyStructure { get; set; }
         public PropertyInfo SourcePropertyInfo { get; set; }
         public PropertyInfo TargetPropertyInfo { get; set; }
         public bool CopyCollectionKey { get; set; } = false;
@@ -25,15 +61,6 @@ namespace Dexih.Utils.CopyProperties
         public bool CopyIsValid { get; set; } = false;
         public bool CopyReference { get; set; } = false;
 
-        public bool IsSourceEnumerable { get; set; } = false;
-        public bool IsTargetArray { get; set; } = false;
-        public bool IsTargetCollection { get; set; } = false;
-        public MethodInfo AddMethod { get; set; }
-        public Type ItemType { get; set; }
-        public Dictionary<string, PropertyElement> ItemPropertyElements { get; set; }
-        public PropertyElement ItemCollectionKey { get; set; }
-        public PropertyElement ItemIsValid { get; set; }
-        public bool IsSimpleType { get; set; } = false;
 
     }
 }
