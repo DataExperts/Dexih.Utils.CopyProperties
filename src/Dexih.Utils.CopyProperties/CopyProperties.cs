@@ -85,6 +85,31 @@ namespace Dexih.Utils.CopyProperties
                     continue;
                 }
 
+                if(targetType.IsArray)
+                {
+                    switch (srcProp.Name)
+                    {
+                        case "IsFixedSize":
+                        case "IsReadOnly":
+                        case "IsSynchronized":
+                        case "Length":
+                        case "LongLength":
+                        case "Rank":
+                        case "SyncRoot":
+                            continue;
+                    }
+                }
+
+                if (propertyStructure.IsTargetCollection)
+                {
+                    switch (srcProp.Name)
+                    {
+                        case "Count":
+                        case "Capacity":
+                            continue;
+                    }
+                }
+
                 var propertyElement = new PropertyElement();
                 propertyStructure.PropertyElements.Add(srcProp.Name, propertyElement);
 
@@ -439,7 +464,7 @@ namespace Dexih.Utils.CopyProperties
                             }
 
                             var i = 0;
-                            foreach (var item in newIndexedTargetCollection)
+                            foreach (var item in newIndexedTargetCollection.Values)
                             {
                                 targetArray.SetValue(item, i);
                                 i++;
