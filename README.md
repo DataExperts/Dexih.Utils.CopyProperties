@@ -1,7 +1,7 @@
 # Dexih.Utils.CopyProperties
 
 [build]:    https://ci.appveyor.com/project/dataexperts/dexih-utils-copyproperties
-[build-img]: https://ci.appveyor.com/api/projects/status/y9i1n0992fxg5ci0?svg=true
+[build-img]: https://ci.appveyor.com/api/projects/status/ie0k2cjje6g032j9?svg=true
 [nuget]:     https://www.nuget.org/packages/Dexih.Utils.CopyProperties
 [nuget-img]: https://badge.fury.io/nu/Dexih.Utils.CopyProperties.svg
 [nuget-name]: Dexih.Utils.CopyProperties
@@ -24,7 +24,7 @@ Add the latest version of the package "Dexih.Utils.CopyProperties" to a .net cor
 
 ---
 
-### Hello World Exmaple
+### Hello World Example
 
 ```csharp
 using System;
@@ -41,7 +41,7 @@ public class Program
 	}
 }
 ```
-[Hello world fiddle][https://dotnetfiddle.net/0GQjJh]
+[Hello world fiddle](https://dotnetfiddle.net/0GQjJh)
 
 ### Performance
 
