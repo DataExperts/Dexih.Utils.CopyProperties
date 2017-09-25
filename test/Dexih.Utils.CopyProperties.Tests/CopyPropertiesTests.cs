@@ -100,6 +100,38 @@ namespace Dexih.CopyProperties.Tests
         }
 
         [Fact]
+        public void OverwriteEqualSizeArray()
+        {
+            var array1 = new string[] { "123", "456", "789" };
+            var array2 = new string[] { "abc", "def", "hij" };
+
+            array1.CopyProperties(array2);
+
+            Assert.Equal("123", array2[0]);
+            Assert.Equal("456", array2[1]);
+            Assert.Equal("789", array2[2]);
+        }
+
+        [Fact]
+        public void OverwriteEmptyArray()
+        {
+            var array1 = new string[] { "123", "456", "789" };
+            var array2 = new string[] { };
+
+            // won't work as the arrays are difference sizes
+            Assert.Throws(typeof(CopyPropertiesTargetInstanceException), () => array1.CopyProperties(array2));
+
+            object arrayObject = null;
+            array1.CopyProperties(ref arrayObject, false);
+
+            var arrayReturn = (string[])arrayObject;
+
+            Assert.Equal("123", arrayReturn[0]);
+            Assert.Equal("456", arrayReturn[1]);
+            Assert.Equal("789", arrayReturn[2]);
+        }
+
+        [Fact]
         public void CopyPropertiesArray()
         {
             var copyTestArray1 = new ChildTest[]

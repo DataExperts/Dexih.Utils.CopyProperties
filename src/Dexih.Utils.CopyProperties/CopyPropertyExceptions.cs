@@ -47,4 +47,16 @@ namespace Dexih.Utils.CopyProperties
         {
         }
     }
+
+    public class CopyPropertiesTargetInstanceException : CopyPropertiesException
+    {
+        public CopyPropertiesTargetInstanceException() : base(ModifyMessage())
+        {
+        }
+
+        private static string ModifyMessage()
+        {
+            return $"The CopyProperties could not be created as a new instance of the target needs to be created.  Either, ensure the target object has been initialize and it is an array is the same size, or use the CopyProperties(this object source, ref object target) method or the CloneProperties(this object source) method.";
+        }
+    }
 }

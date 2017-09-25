@@ -20,8 +20,13 @@ namespace Dexih.Utils.CopyProperties
         /// <param name="target">The destination object</param>
         /// <param name="onlySimpleProperties">Indicates only simple values will be copied such as string, int, date etc.  This includes any properties that can be copied with a simple "=". </param>
         /// <param name="parentKeyValue">The destination object</param>
-        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType)
+        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType = null)
         {
+            if(targetType == null)
+            {
+                targetType = sourceType;
+            }
+
             var propertyStructure = new PropertyStructure();
             propertyStructure.IsSimpleType = IsSimpleType(sourceType);
             propertyStructure.SourceType = sourceType;
@@ -241,6 +246,31 @@ namespace Dexih.Utils.CopyProperties
             return target;
         }
 
+        public static void CopyProperties(this object source, ref object target, bool shallowCopy = false)
+        {
+            // If source is null throw an exception
+            if (source == null)
+            {
+                throw new CopyPropertiesNullException();
+            }
+
+            var srcType = source.GetType();
+            Type targetType = null;
+            if (target != null)
+            {
+                targetType = target.GetType();
+            }
+
+            var properties = GetPropertyStructure(srcType, targetType);
+
+            if (properties.IsSimpleType)
+            {
+                throw new CopyPropertiesSimpleTypeException(srcType);
+            }
+
+            CopyProperties(source, ref target, properties, shallowCopy, null);
+        }
+
         /// <summary>
         /// Performance a copy/merge between two objects.  
         /// Note: this will only copy object proerties (i.e declared with get/set).
@@ -250,23 +280,14 @@ namespace Dexih.Utils.CopyProperties
         /// <param name="shallowCopy">Set true to performa a shallow copy, otherwise will perform a deep copy.</param>
         public static void CopyProperties(this object source, object target, bool shallowCopy = false)
         {
-            // If source is null throw an exception
-            if (source == null)
+            var originalTarget = target;
+
+            CopyProperties(source, ref target, shallowCopy);
+
+            if(!Object.ReferenceEquals(originalTarget, target))
             {
-                throw new CopyPropertiesNullException();
+                throw new CopyPropertiesTargetInstanceException();
             }
-
-            var srcType = source.GetType();
-            var targetType = target.GetType();
-
-            var properties = GetPropertyStructure(srcType, targetType);
-
-            if(properties.IsSimpleType)
-            {
-                throw new CopyPropertiesSimpleTypeException(srcType);
-            }
-
-            CopyProperties(source, ref target, properties, shallowCopy, null);
         }
 
         /// <summary>
@@ -302,7 +323,13 @@ namespace Dexih.Utils.CopyProperties
                     {
                         if (propertyStructure.IsTargetArray)
                         {
-                            var targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, sourceCollection.Cast<object>().Count()) as Array;
+                            Array targetArray = (Array)targetCollection;
+                            var count = sourceCollection.Cast<object>().Count();
+                            if (targetArray == null || targetArray.Length != sourceCollection.Cast<object>().Count())
+                            {
+                                targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, count) as Array;
+                            }
+
                             var i = 0;
                             foreach (var item in sourceCollection)
                             {
@@ -315,8 +342,8 @@ namespace Dexih.Utils.CopyProperties
                                     var targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
                                     item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, parentKeyValue);
                                     targetArray.SetValue(targetItem, i);
-                                    i++;
                                 }
+                                i++;
                             }
 
                             target = targetArray;
