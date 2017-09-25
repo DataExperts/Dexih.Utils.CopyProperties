@@ -8,7 +8,7 @@
 
 [![Build status][build-img]][build] [![Nuget][nuget-img]][nuget]
 
-The CopyProperties library allows sophisticated deep copy of c# objects. The will automatically duplicate equivalent properties in across two classes, including child properties, arrays and collections.
+The `CopyProperties` library allows sophisticated deep copy of c# objects. The will automatically duplicate equivalent properties in across two classes, including child properties, arrays and collections.
 
 The primary benefits of this library:
  * Performance copies faster then via serialization.
@@ -20,7 +20,7 @@ The primary benefits of this library:
 
 ### Installation
 
-Add the latest version of the package "Dexih.Utils.CopyProperties" to a .net core/.net project.
+Add the [latest version][nuget] of the package "Dexih.Utils.CopyProperties" to a .net core/.net project.  This supports .net standard framework 1.3 or newer, or the .net framework 4.6 or newer.
 
 ---
 
@@ -41,11 +41,11 @@ public class Program
 	}
 }
 ```
-[Hello world fiddle](https://dotnetfiddle.net/0GQjJh)
+[Hello world demo](https://dotnetfiddle.net/0GQjJh)
 
 ### Performance
 
-The following method is a commonly used alternative for cloning using the `JsonConvert` library to serialize/deserialize the object.
+The following method is an alternative for cloning using the `JsonConvert` library to serialize/deserialize the object.
 
 ```csharp
 var serialized = JsonConvert.SerializeObject(original);
@@ -61,7 +61,9 @@ var copyClass = original.CloneProperties<SampleClass>();
 With a small set of data (~50 row collection) the performance is about 10x faster (50ms for the CopyProperties, 500ms for the JsonConvert).
 For a larger set of data(~500,000 row collection) the performance gain is more modest about 30% faster (3 seconds for CopyProperties, 4 seconsd for JsonConvert)
 
-Special note: for best performance a hand coded copy will perform significatly better than either this library or serlialization, as it won't depend on the `Reflection` library, which adds a significant overhead.
+[Performance demo](https://dotnetfiddle.net/SMR1vF)
+
+**Special Note**: for best performance a hand coded copy will perform significatly better than either this library or serlialization, as it won't depend on the `Reflection` library, which adds a significant overhead.
 
 
 ### Usage
@@ -84,7 +86,8 @@ original.CopyProperties(copy);
 copy = original.CloneProperties<SampleClass>();
 ```
 
-By default the CopyProperties function will perform a deep copy of the object.  This means is will recurse through object proerties, lists and collections.  If all that is required is a shallow copy, that isonly copy the top level primary properties such as int/string/dates, this can be done by setting the `shallowCopy` parameter to `false` as follows:
+By default the `CopyProperties` function will perform a deep copy of the object which will recurse through any object properties, lists and collections within the collection.  If all that is required is a shallow copy (i.e. only top level primary properties such as int/string/dates), this can be done by setting the `shallowCopy` parameter to `false` as follows.
+
 ```charp
 // CopyProperties shallow copy
 var copy = new SampleClass(false);
@@ -96,6 +99,24 @@ copy = original.CloneProperties<SampleClass>(false);
 
 ### Merging Objects
 
+By using class decorators, the CopyProperties is able to perform a delta between arrays/collections.
+
+This is done by setting a key attribute in the class that is being merged.  The key value must be decorated with the [CopyCollectionKey] attribute.  In addition an optional [CopyIsValid] property can be decorated, which will be set `false` when the target list contains a record in the target list.  If there is no [CopyIsValid] attribute set, then target records that do not exist in the source will be removed.
+
+The following is a sample class that uses these decorators.
+```csharp
+public class Student
+{
+	[CopyCollectionKey]
+	public string StudentId { get; set; }
+	public string FirstName { get; set; }
+	public string Surname { get; set; }
+	public string Class {get ;set; }
+
+	[CopyIsValid]
+	public bool IsCurrentStudent {get; set;}
+}
+```
 
 
 
