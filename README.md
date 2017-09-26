@@ -8,15 +8,15 @@
 
 [![Build status][build-img]][build] [![Nuget][nuget-img]][nuget]
 
-The `CopyProperties` library allows sophisticated deep copy of c# objects. The will automatically duplicate equivalent properties in across two classes, including child properties, arrays and collections.
+The `CopyProperties` library allows deep copy of c# objects along with merge and delta capabilities.
 
-The primary benefits of this library:
+The primary benefits:
 
- * Performs well.  Faster then via serialization.
- * Automatically copies properties between two classes with similar properties, even then they are not the same types.
+ * Performs well, faster then via serialization.
+ * Can copy between two classes with similar properties, even when they are not the same primary types.
  * Use property decorators to customize how properties should be copied (such as by reference, ignored etc.)
- * Merge to target collections/arrays using lookup keys.
- * Cascade parent keys to child records.
+ * Can merge collections/arrays using keys.
+ * Can cascade parent keys to child records.
 
 ---
 
@@ -28,11 +28,11 @@ Add the [latest version][nuget] of the package "Dexih.Utils.CopyProperties" to a
 
 ### Limitations
 
-This is still early release, and passing our basic tests.  Use with care, and ensure you build your own tests to confirm functionality is working.
+This is still early release, and passing our basic tests.  Use with care, and ensure you build your own tests to confirm specific functionality is working. 
 
 This has the following limitations:
 
-* Only supports class properties (i.e. proerties declared with get/set).  Fields are ignored.
+* Only supports class properties (i.e. proerties declared with a get/set).  Fields are ignored.
 * Only supports a limited number of colleciton types such as List/HashSet.  It should work if the list is derived from `IEnumerable` and contains a `Add(item)` and `Remove(item)` function.  Dictionary/Queue and other types that don't meet this format are not supported.
 
 ### Hello World Example
@@ -57,7 +57,7 @@ public class Program
 
 ### Performance
 
-The following method is an alternative for cloning using the `JsonConvert` library to serialize/deserialize the object.
+The following sample is an alternative for cloning using the `JsonConvert` library to serialize/deserialize the object.
 
 ```csharp
 var serialized = JsonConvert.SerializeObject(original);
@@ -75,7 +75,7 @@ For a larger set of data(~500,000 row collection) the performance gain is more m
 
 [Performance demo](https://dotnetfiddle.net/SMR1vF)
 
-**Special Note**: for best performance a hand coded copy will perform significatly better than either this library or serlialization, as it won't depend on the `Reflection` library, which adds a significant overhead.
+**Special Note**: For best performance a handcoded copy will perform significatly better than either this library or serlialization, as the `Reflection` library adds significant overhead.
 
 ### Usage
 
@@ -86,7 +86,7 @@ To get started, add the following name space.
 using Dexih.Utils.CopyProperties;
 ```
 
-There are two main key function the `CopyProperties` and the `CloneProperties`.  The only difference between these is the `CopyProerties` populates an already created instance, adn the `CloneProperties` creates and rerturns a copy.
+There are two functions available; the `CopyProperties` and the `CloneProperties`.  The only difference between these is the `CopyProerties` populates an already created instance, adn the `CloneProperties` creates and rerturns a new instance.
 
 The following example performs the same result using the two available functions.
 
@@ -99,7 +99,7 @@ original.CopyProperties(copy);
 copy = original.CloneProperties<SampleClass>();
 ```
 
-By default the `CopyProperties` function will perform a deep copy of the object which will recurse through any object properties, lists and collections within the collection.  If all that is required is a shallow copy (i.e. only top level primary properties such as int/string/dates), this can be done by setting the `shallowCopy` parameter to `false` as follows.
+By default these functions will perform a deep copy of the object which will recurse through any child object properties, arrays and collections.  If all that is required is a shallow copy (i.e. only top level primary properties such as int/string/dates), this can be done by setting the `shallowCopy` parameter to `false` as follows.
 
 ```charp
 // CopyProperties shallow copy
@@ -134,7 +134,7 @@ public class Student
 }
 ```
 
-If this class is part of an array or collection, when records are removed from the source, they will not be removed from the target, rather the `CopyIsValid` property will be set to false.
+If this class is part of an array or collection, when records are removed from the source, they will **not** be removed from the target, rather the `CopyIsValid` property will be set to false.
 
 ```csharp
 var students = new List<Student>()
@@ -152,14 +152,14 @@ var student = students.Single(c => c.StudentId == "200");
 students.Remove(student);
 students.CopyProperties(studentList);
 
-// the student list stil contains 3 records, however the StudentId="200" will have a IsCurrentStudent=false
+// the student list still contains 3 records, however the StudentId="200" will have a IsCurrentStudent=false
 ```
 
 [Merge demo](https://dotnetfiddle.net/T67cgJ)
 
 ### Cascading a ParentKey to a ChildRecord
 
-In some scenarious, such as dealing with object that will be written to database tables, it can be useful to cascade key values in parent record to child records.
+In some scenarios, such as dealing with objects that will be written to database tables, it can be useful to cascade key values in parent record to child records.
 
 The following student/teacher record shows how to achieve this.
 
@@ -216,7 +216,7 @@ var newTeacher = teacher.CloneProperties<Teacher>();
 
 ### Attributes
 
-The following is a complete list of the property attributes available:
+The following is a complete list of the attributes available for decorating class properties:
 
 * CopyCollectionKey(object defaultKeyValue, bool resetNegativeKeys = false) - Specifies that the property is a key.  The `defaultKeyValue` is applied to records which are null, or negative values when the `resetNegativeKeys=true`.
 * CopyIsValid - Specifies a target record should not be removed, instead this property will be set to `false`.  Otherwise, this wil be set to `true`.
