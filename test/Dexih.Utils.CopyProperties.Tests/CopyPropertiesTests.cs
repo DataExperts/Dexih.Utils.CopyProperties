@@ -6,13 +6,10 @@ using System.Linq;
 using System.Collections;
 using Dexih.Utils.CopyProperties;
 
-namespace Dexih.CopyProperties.Tests
+namespace Dexih.Utils.CopyProperties.Tests
 {
     public class CopyPropertiesTests
     {
-        /// simple enum used for IsSimpleType test
-        public enum ETest { v1, v2, v3 };
-
         [Theory]
         [InlineData("hi", true)]
         [InlineData(1, true)]
@@ -131,11 +128,6 @@ namespace Dexih.CopyProperties.Tests
             Assert.Equal("789", arrayReturn[2]);
         }
 
-        [Fact]
-        public void CloneSimpleArray()
-        {
-            var 
-        }
 
         [Fact]
         public void CopyPropertiesArray()
@@ -181,11 +173,116 @@ namespace Dexih.CopyProperties.Tests
 
         }
 
-        public class MixedCollection : List<string>
+        [Fact]
+        public void CopyParentCollectionKeyTest()
         {
-            public string string1 { get; set; }
-            public int int1 { get; set; }
+            var studentlist = new List<Student>()
+            {
+                new Student() { StudentId = "100", FirstName = "John", LastName = "Doe" },
+                new Student() { StudentId = "200", FirstName = "Jane", LastName = "Smith" },
+                new Student() { StudentId = "300", FirstName = "Joe", LastName = "Bloggs" },
+            };
+
+            var teacher = new Teacher()
+            {
+                TeacherId = "T100",
+                FirstName = "Edna",
+                LastName = "Krabappel",
+                Students = studentlist
+            };
+
+            var newTeacher = teacher.CloneProperties<Teacher>();
+            Assert.Equal("T100", newTeacher.Students[0].TeacherId);
+            Assert.Equal("T100", newTeacher.Students[1].TeacherId);
+            Assert.Equal("T100", newTeacher.Students[2].TeacherId);
         }
+
+        [Fact]
+        public void CopyCollectionKeyTest()
+        {
+            var studentlist = new List<Student>()
+            {
+                new Student() { StudentId = "100", FirstName = "John", LastName = "Doe" },
+                new Student() { StudentId = "200", FirstName = "Jane", LastName = "Smith" },
+                new Student() { StudentId = "300", FirstName = "Joe", LastName = "Bloggs" },
+            };
+
+            var newList = studentlist.CloneProperties<List<Student>>();
+
+            Assert.Equal(3, newList.Count);
+            Assert.Equal("100", newList[0].StudentId);
+            Assert.Equal("John", newList[0].FirstName);
+            Assert.Equal("Doe", newList[0].LastName);
+            Assert.Equal("200", newList[1].StudentId);
+            Assert.Equal("300", newList[2].StudentId);
+
+            // test a modification to the source list.
+            studentlist[0].LastName = "Does";
+            studentlist.CopyProperties(newList);
+            Assert.Equal("100", newList[0].StudentId);
+            Assert.Equal("Does", newList[0].LastName);
+
+            // test an addition to the source list
+            studentlist.Add(new Student() { StudentId = "400", FirstName = "Destiny", LastName = "Child" });
+            studentlist.CopyProperties(newList);
+            Assert.Equal("400", newList[3].StudentId);
+
+            // test a remove from the source list
+            studentlist.RemoveAt(1);
+            studentlist.CopyProperties(newList);
+            Assert.Equal(3, newList.Count);
+            Assert.Equal(0, newList.Where(c => c.StudentId == "200").Count());
+
+        }
+
+     
+
+        [Fact]
+        public void CopyCollectionKeyInvalidItemTest()
+        {
+            var studentlist = new List<Student2>()
+            {
+                new Student2() { StudentId = "100", FirstName = "John", LastName = "Doe" },
+                new Student2() { StudentId = "200", FirstName = "Jane", LastName = "Smith" },
+                new Student2() { StudentId = "300", FirstName = "Joe", LastName = "Bloggs" },
+            };
+
+            var newList = studentlist.CloneProperties<List<Student2>>();
+
+            Assert.Equal(3, newList.Count);
+            Assert.Equal("100", newList[0].StudentId);
+            Assert.Equal("John", newList[0].FirstName);
+            Assert.Equal(true, newList[0].IsCurrentStudent);
+            Assert.Equal("Doe", newList[0].LastName);
+            Assert.Equal("200", newList[1].StudentId);
+            Assert.Equal(true, newList[1].IsCurrentStudent);
+            Assert.Equal("300", newList[2].StudentId);
+            Assert.Equal(true, newList[2].IsCurrentStudent);
+
+            // test a modification to the source list.
+            studentlist[0].LastName = "Does";
+            studentlist.CopyProperties(newList);
+            Assert.Equal(3, newList.Count);
+            Assert.Equal("100", newList[0].StudentId);
+            Assert.Equal("Does", newList[0].LastName);
+            Assert.Equal(true, newList[0].IsCurrentStudent);
+
+            // test an addition to the source list
+            studentlist.Add(new Student2() { StudentId = "400", FirstName = "Destiny", LastName = "Child" });
+            studentlist.CopyProperties(newList);
+            Assert.Equal("400", newList[3].StudentId);
+            Assert.Equal(true, newList[3].IsCurrentStudent);
+
+            // test a remove from the source list
+            studentlist.RemoveAt(1);
+            studentlist.CopyProperties(newList);
+            Assert.Equal(4, newList.Count);
+            Assert.Equal(1, newList.Where(c => c.StudentId == "200" && !c.IsCurrentStudent).Count());
+
+        }
+
+
+
 
         [Fact]
         public void CopyPropertiesArrayLists()
@@ -282,160 +379,7 @@ namespace Dexih.CopyProperties.Tests
             Assert.Equal(childValueCount, 3);
         }
 
-        public class CopyTest
-        {
-            // basic values
-            public Byte ByteValue { get; set; }
-            public SByte SbyteValue { get; set; }
-            public UInt16 Uint16Value { get; set; }
-            public UInt32 Uint32Value { get; set; }
-            public UInt64 Uint64Value { get; set; }
-            public Int16 Int16Value { get; set; }
-            public Int32 Int32Value { get; set; }
-            public Int64 Int64Value { get; set; }
-            public Decimal DecValue { get; set; }
-            public Double DoubleValue { get; set; }
-            public Single SingleValue { get; set; }
-            public String StringValue { get; set; }
-            public Boolean BooleanValue { get; set; }
-            public DateTime DatetimeValue { get; set; }
-            public TimeSpan TimespanValue { get; set; }
-            public Guid GuidValue { get; set; }
-            public ETest EnumValue { get; set; }
-
-            public ChildTest NullChildTest { get; set; } = null;
-
-            [CopyIgnore]
-            public string IgnoreThis { get; set; }
-
-            public ChildTest ChildValue { get; set; }
-
-            [CopySetNull]
-            public ChildTest ChildNullTarget { get; set; } 
-
-            [CopyReference]
-            public ChildTest ChildCopyReference { get; set; } 
-
-            public ChildTest[] ChildArray { get; set; }
-            public List<ChildTest> ChildList { get; set; }
-            public Children Children { get; set; }
-
-            public object[] EmptyArray { get; set; }
-
-            public InheritedCollection InheritedCollection { get; set; }
-
-            public void InitSampleValues1()
-            {
-                ByteValue = 1;
-                SbyteValue = 2;
-                Uint16Value = 3;
-                Uint32Value = 4;
-                Uint64Value = 5;
-                Int16Value = 6;
-                Int32Value = 7;
-                Int64Value = 8;
-                DecValue = 9;
-                DoubleValue = 10.1;
-                SingleValue = 11;
-                StringValue = "12";
-                BooleanValue = true;
-                DatetimeValue = new DateTime(2001,01,01);
-                TimespanValue = new TimeSpan(1, 2, 3);
-                GuidValue = new Guid("e596b14b-f804-49c5-99dd-a0b900286f50");
-                EnumValue = ETest.v1;
-
-                ChildValue = new ChildTest() { Key = 50, Name = "childValue", Valid = true, IgnoreThis = "abc" };
-                ChildNullTarget = ChildValue;
-                ChildCopyReference = ChildValue;
-
-                ChildArray = new ChildTest[]
-                {
-                    new ChildTest() {Key = 1, Name = "value 1", Valid = true, IgnoreThis = "abc" },
-                    new ChildTest() {Key = 2, Name = "value 2", Valid = true, IgnoreThis = "abc" },
-                    new ChildTest() {Key = 3, Name = "value 3", Valid = true, IgnoreThis = "abc" },
-                };
-
-                EmptyArray = new object[0];
-                InheritedCollection = new InheritedCollection();
-
-                ChildList = ChildArray.ToList();
-
-                Children = new Children()
-                {
-                    new ChildTest() {Key = 1, Name = "value 1", Valid = true, IgnoreThis = "abc" },
-                    new ChildTest() {Key = 2, Name = "value 2", Valid = true, IgnoreThis = "abc" },
-                    new ChildTest() {Key = 3, Name = "value 3", Valid = true, IgnoreThis = "abc" },
-                };
-            }
-
-            public void InitSampleValues2()
-            {
-                ByteValue = 100;
-                SbyteValue = 20;
-                Uint16Value = 300;
-                Uint32Value = 400;
-                Uint64Value = 500;
-                Int16Value = 600;
-                Int32Value = 700;
-                Int64Value = 800;
-                DecValue = 900;
-                DoubleValue = 1000.1;
-                SingleValue = 1100;
-                StringValue = "1200";
-                BooleanValue = true;
-                DatetimeValue = new DateTime(2017, 01, 01);
-                TimespanValue = new TimeSpan(4,5,6);
-                GuidValue = new Guid("e596b14b-1111-1111-1111-a0b900286f50");
-                EnumValue = ETest.v2;
-            }
-
-            public void InitRandomValues()
-            {
-                var random = new Random();
-
-                ByteValue = Convert.ToByte(random.Next(Byte.MaxValue));
-                SbyteValue = Convert.ToSByte(random.Next(SByte.MaxValue));
-                Uint16Value = Convert.ToUInt16(random.Next(UInt16.MaxValue));
-                Uint32Value = Convert.ToUInt32(random.Next(UInt16.MaxValue));
-                Uint64Value = Convert.ToUInt32(random.Next(Int32.MaxValue));
-                Int16Value = Convert.ToInt16(random.Next(Int16.MaxValue));
-                Int32Value = Convert.ToInt32(random.Next(Int32.MaxValue));
-                Int64Value = Convert.ToInt64(random.Next(Int32.MaxValue));
-                DecValue = Convert.ToInt32(random.Next(Int32.MaxValue));
-                DoubleValue = Convert.ToInt32(random.Next(Int32.MaxValue));
-                SingleValue = Convert.ToInt32(random.Next(Int32.MaxValue));
-                StringValue = Convert.ToInt32(random.Next(Int32.MaxValue)).ToString();
-                BooleanValue = Convert.ToBoolean(random.Next(1));
-                DatetimeValue = DateTime.Now;
-                TimespanValue = DateTime.Now.TimeOfDay;
-                GuidValue = Guid.NewGuid();
-                EnumValue = (ETest)random.Next(2);
-            }
-        }
-
-        public class Children: List<ChildTest>
-        {
-  
-        }
-
-        public class ChildTest
-        {
-            [CopyCollectionKey(0)]
-            public int Key { get; set; }
-
-            public string Name { get; set; }
-
-            [CopyIsValid]
-            public bool Valid { get; set; }
-
-            [CopyIgnore]
-            public string IgnoreThis { get; set; }
-        }
-
-        public class InheritedCollection: List<object[]>
-        {
-
-        }
+   
 
     }
 }

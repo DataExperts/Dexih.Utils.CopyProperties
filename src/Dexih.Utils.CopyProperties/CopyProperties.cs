@@ -59,6 +59,7 @@ namespace Dexih.Utils.CopyProperties
                 else if (typeof(IEnumerable).IsAssignableFrom(targetType))
                 {
                     propertyStructure.AddMethod = targetType.GetMethod(nameof(ICollection<object>.Add));
+                    propertyStructure.RemoveMethod = targetType.GetMethod(nameof(ICollection<object>.Remove));
                     var targetItemType = propertyStructure.AddMethod.GetParameters()[0].ParameterType;
                     propertyStructure.IsTargetCollection = true;
                     propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
@@ -491,10 +492,31 @@ namespace Dexih.Utils.CopyProperties
                         else if (propertyStructure.IsTargetCollection)
                         {
                             var newTargetCollection = (IEnumerable)targetCollection;
-                            if (newTargetCollection == null)
+                            if (newTargetCollection == null || propertyStructure.RemoveMethod == null)
                             {
-                                newTargetCollection = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType) as IEnumerable;
+                                newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
                             }
+
+                            // create a  list of items to remove 
+                            var removeItems = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
+                            foreach (var item in newTargetCollection)
+                            {
+                                var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
+                                if(!newIndexedTargetCollection.ContainsKey(key))
+                                {
+                                    propertyStructure.AddMethod.Invoke(removeItems, new[] { item });
+                                }
+
+                                newIndexedTargetCollection.Remove(key);
+                            }
+
+                            // remove the items from the target list
+                            foreach(var item in removeItems)
+                            {
+                                propertyStructure.RemoveMethod.Invoke(newTargetCollection, new[] { item });
+                            }
+
+                            // finally add remaining items to the target collection.
                             foreach (var item in newIndexedTargetCollection.Values)
                             {
                                 propertyStructure.AddMethod.Invoke(newTargetCollection, new[] { item });
@@ -585,6 +607,12 @@ namespace Dexih.Utils.CopyProperties
                     if(prop.CopyParentCollectionKey)
                     {
                         prop.TargetPropertyInfo.SetValueIfchanged(target, parentKeyValue);
+                        continue;
+                    }
+
+                    if (prop.CopyIsValid)
+                    {
+                        prop.TargetPropertyInfo.SetValueIfchanged(target, true);
                         continue;
                     }
 

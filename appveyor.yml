@@ -50,6 +50,7 @@ for:
   - dotnet pack -c %CONFIGURATION% --no-build /p:Version=%APPVEYOR_BUILD_VERSION% -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
+  - del .\artifacts\*Performance*
   
 # test branch produces a nuget package with the version suffix added.
 -
@@ -64,6 +65,7 @@ for:
   - dotnet pack -c %CONFIGURATION% --no-build /p:Version=%APPVEYOR_BUILD_VERSION%-ALPHA -o ../../artifacts
   - del .\artifacts\*test*
   - del .\artifacts\*Example*
+  - del .\artifacts\*Performance*
   
 # master and dev branchs runs test only, no publishing packages
 -

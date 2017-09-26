@@ -23,6 +23,7 @@ namespace Dexih.Utils.CopyProperties
 
         public bool IsTargetCollection { get; set; } = false;
         public MethodInfo AddMethod { get; set; }
+        public MethodInfo RemoveMethod { get; set; }
 
         /// <summary>
         /// If the property is a collection, this is the structure for each item in the collection.
