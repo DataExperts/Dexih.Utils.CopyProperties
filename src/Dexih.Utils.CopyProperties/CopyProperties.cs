@@ -498,13 +498,13 @@ namespace Dexih.Utils.CopyProperties
                             }
 
                             // create a  list of items to remove 
-                            var removeItems = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
+                            var removeItems = new List<object>();
                             foreach (var item in newTargetCollection)
                             {
                                 var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
                                 if(!newIndexedTargetCollection.ContainsKey(key))
                                 {
-                                    propertyStructure.AddMethod.Invoke(removeItems, new[] { item });
+                                    removeItems.Add(item);
                                 }
 
                                 newIndexedTargetCollection.Remove(key);
@@ -616,9 +616,10 @@ namespace Dexih.Utils.CopyProperties
                         continue;
                     }
 
-                    if (prop.CopyCollectionKey && prop.ResetNegativeKeys)
+                    // if this is a key, and reset negative number is true, then set this value to 0.
+                    if (prop.SourcePropertyInfo != null && prop.CopyCollectionKey && prop.ResetNegativeKeys)
                     {
-                        if (Convert.ToDouble(prop.TargetPropertyInfo.GetValue(target)) < 0)
+                        if (Convert.ToDouble(prop.SourcePropertyInfo.GetValue(source)) < 0)
                         {
                             prop.TargetPropertyInfo.SetValueIfchanged(target, prop.DefaultKeyValue);
                             continue;
