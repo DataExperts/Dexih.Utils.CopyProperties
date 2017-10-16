@@ -60,6 +60,10 @@ namespace Dexih.Utils.CopyProperties
                 {
                     propertyStructure.AddMethod = targetType.GetMethod(nameof(ICollection<object>.Add));
                     propertyStructure.RemoveMethod = targetType.GetMethod(nameof(ICollection<object>.Remove));
+                    if(propertyStructure.AddMethod == null) 
+                    {
+                        throw new CopyPropertiesInvalidCollectionException($"The target property {targetType.Name} is a collection, however no Add method could be found.");
+                    }
                     var targetItemType = propertyStructure.AddMethod.GetParameters()[0].ParameterType;
                     propertyStructure.IsTargetCollection = true;
                     propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
