@@ -453,7 +453,7 @@ namespace Dexih.Utils.CopyProperties
                             item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, collectionKeyValue);
 
                             //set isvalid property to true.
-                            if (propertyStructure.ItemIsValid != null)
+                            if (propertyStructure.ItemIsValid != null && propertyStructure.ItemIsValid.TargetPropertyInfo.GetValue(item) == null)
                             {
                                 propertyStructure.ItemIsValid.TargetPropertyInfo.SetValue(item, true);
                             }
@@ -614,7 +614,8 @@ namespace Dexih.Utils.CopyProperties
                         continue;
                     }
 
-                    if (prop.CopyIsValid)
+                    // if the target "isvalid = null, then set to true"
+                    if (prop.CopyIsValid && prop.TargetPropertyInfo.GetValue(target) == null)
                     {
                         prop.TargetPropertyInfo.SetValueIfchanged(target, true);
                         continue;
