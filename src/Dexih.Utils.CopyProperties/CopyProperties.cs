@@ -419,7 +419,7 @@ namespace Dexih.Utils.CopyProperties
                         }
                         else
                         {
-                            throw new CopyPropertiesInvalidCollectionException($"The source is a collection, howeve the equivalent target property is {propertyStructure.TargetType.Name}.");
+                            throw new CopyPropertiesInvalidCollectionException($"The source is a collection, however the equivalent target property is type {propertyStructure.TargetType.Name}.");
                         }
                     }
                     else
@@ -456,6 +456,11 @@ namespace Dexih.Utils.CopyProperties
                             if (propertyStructure.ItemIsValid != null && propertyStructure.ItemIsValid.TargetPropertyInfo.GetValue(item) == null)
                             {
                                 propertyStructure.ItemIsValid.TargetPropertyInfo.SetValue(item, true);
+                            }
+
+                            if(newIndexedTargetCollection.ContainsKey(key))
+                            {
+                                throw new CopyPropertiesException($"The copy collection failed as the source collect of {propertyStructure.ItemStructure.SourceType.Name} contained multiple items with the same key field {propertyStructure.ItemCollectionKey.TargetPropertyInfo.Name}.");
                             }
 
                             newIndexedTargetCollection.Add(key, targetItem);
