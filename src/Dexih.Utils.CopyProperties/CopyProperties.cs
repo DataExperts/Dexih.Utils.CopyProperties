@@ -118,9 +118,9 @@ namespace Dexih.Utils.CopyProperties
                 var propertyElement = new PropertyElement();
                 propertyStructure.PropertyElements.Add(srcProp.Name, propertyElement);
 
-                var attrbitues = srcProp.GetCustomAttributes();
+                var attributes = srcProp.GetCustomAttributes();
 
-                foreach(var attrib in attrbitues)
+                foreach(var attrib in attributes)
                 {
                     switch(attrib)
                     {
@@ -190,9 +190,9 @@ namespace Dexih.Utils.CopyProperties
                         propertyStructure.PropertyElements.Add(targetProp.Name, propertyElement);
                     }
 
-                    var attrbitues = targetProp.GetCustomAttributes();
+                    var attributes = targetProp.GetCustomAttributes();
 
-                    foreach (var attrib in attrbitues)
+                    foreach (var attrib in attributes)
                     {
                         switch (attrib)
                         {
@@ -256,7 +256,7 @@ namespace Dexih.Utils.CopyProperties
 
         /// <summary>
         /// Clone the properties from the source object.
-        /// Note: this will only copy object proerties (i.e declared with get/set).
+        /// Note: this will only copy object properties (i.e declared with get/set).
         /// </summary>
         /// <param name="source">The source object.</param>
         /// <param name="shallowCopy">Set true to performa a shallow copy, otherwise will perform a deep copy.</param>
@@ -305,7 +305,7 @@ namespace Dexih.Utils.CopyProperties
 
         /// <summary>
         /// Performance a copy/merge between two objects.  
-        /// Note: this will only copy object proerties (i.e declared with get/set).
+        /// Note: this will only copy object properties (i.e declared with get/set).
         /// </summary>
         /// <param name="source">The source object</param>
         /// <param name="target">The target object</param>
@@ -452,7 +452,7 @@ namespace Dexih.Utils.CopyProperties
 
                             item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, collectionKeyValue);
 
-                            //set isvalid property to true.
+                            //set isValid property to true.
                             if (propertyStructure.ItemIsValid != null && propertyStructure.ItemIsValid.TargetPropertyInfo.GetValue(item) == null)
                             {
                                 propertyStructure.ItemIsValid.TargetPropertyInfo.SetValue(item, true);
@@ -573,7 +573,7 @@ namespace Dexih.Utils.CopyProperties
                     // set the target value to null
                     if (prop.CopySetNull)
                     {
-                        prop.TargetPropertyInfo.SetValueIfchanged(target, null);
+                        prop.TargetPropertyInfo.SetValueIfChanged(target, null);
                         continue;
                     }
 
@@ -615,14 +615,14 @@ namespace Dexih.Utils.CopyProperties
 
                     if(prop.CopyParentCollectionKey)
                     {
-                        prop.TargetPropertyInfo.SetValueIfchanged(target, parentKeyValue);
+                        prop.TargetPropertyInfo.SetValueIfChanged(target, parentKeyValue);
                         continue;
                     }
 
-                    // if the target "isvalid = null, then set to true"
+                    // if the target "isValid = null, then set to true"
                     if (prop.CopyIsValid && prop.TargetPropertyInfo.GetValue(target) == null)
                     {
-                        prop.TargetPropertyInfo.SetValueIfchanged(target, true);
+                        prop.TargetPropertyInfo.SetValueIfChanged(target, true);
                         continue;
                     }
 
@@ -631,7 +631,7 @@ namespace Dexih.Utils.CopyProperties
                     {
                         if (Convert.ToDouble(prop.SourcePropertyInfo.GetValue(source)) < 0)
                         {
-                            prop.TargetPropertyInfo.SetValueIfchanged(target, prop.DefaultKeyValue);
+                            prop.TargetPropertyInfo.SetValueIfChanged(target, prop.DefaultKeyValue);
                             continue;
                         }
                     }
@@ -645,7 +645,7 @@ namespace Dexih.Utils.CopyProperties
                     // do a normal copy
                     if (prop.CopyReference || prop.PropertyStructure.IsSimpleType)
                     {
-                        prop.TargetPropertyInfo.SetValueIfchanged(target, prop.SourcePropertyInfo.GetValue(source));
+                        prop.TargetPropertyInfo.SetValueIfChanged(target, prop.SourcePropertyInfo.GetValue(source));
                         continue;
                     }
 
@@ -725,7 +725,7 @@ namespace Dexih.Utils.CopyProperties
             return typeof(IEnumerable).IsAssignableFrom(type);
         }
 
-        public static void SetValueIfchanged(this PropertyInfo property, object obj, object value)
+        public static void SetValueIfChanged(this PropertyInfo property, object obj, object value)
         {
             if (IsSimpleType(property.PropertyType))
             {
