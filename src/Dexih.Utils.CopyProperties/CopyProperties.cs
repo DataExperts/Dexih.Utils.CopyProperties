@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -27,10 +26,12 @@ namespace Dexih.Utils.CopyProperties
                 targetType = sourceType;
             }
 
-            var propertyStructure = new PropertyStructure();
-            propertyStructure.IsSimpleType = IsSimpleType(sourceType);
-            propertyStructure.SourceType = sourceType;
-            propertyStructure.TargetType = targetType;
+            var propertyStructure = new PropertyStructure
+            {
+                IsSimpleType = IsSimpleType(sourceType),
+                SourceType = sourceType,
+                TargetType = targetType
+            };
 
             // if this is a simple type, we're done.
             if (propertyStructure.IsSimpleType)
@@ -41,7 +42,7 @@ namespace Dexih.Utils.CopyProperties
             // if the structure is a collection, or array
             if (typeof(IEnumerable).IsAssignableFrom(sourceType))
             {
-                Type sourceItemType = GetItemElementType(sourceType);
+                var sourceItemType = GetItemElementType(sourceType);
 
                 propertyStructure.IsSourceEnumerable = true;
 
@@ -344,7 +345,7 @@ namespace Dexih.Utils.CopyProperties
             }
 
             // if there is a collectionKey, then store it for providing as the parentkey for recursive calls.
-            object collectionKeyValue = parentKeyValue;
+            var collectionKeyValue = parentKeyValue;
             foreach(var prop in propertyStructure.PropertyElements.Values.Where(c=>c.CopyCollectionKey))
             {
                 if (prop.SourcePropertyInfo != null)
@@ -363,13 +364,13 @@ namespace Dexih.Utils.CopyProperties
             {
                 if (propertyStructure.IsSourceEnumerable)
                 {
-                    IEnumerable sourceCollection = source as IEnumerable;
-                    IEnumerable targetCollection = target as IEnumerable;
+                    var sourceCollection = source as IEnumerable;
+                    var targetCollection = target as IEnumerable;
                     if (propertyStructure.ItemCollectionKey == null || targetCollection == null || !targetCollection.GetEnumerator().MoveNext())
                     {
                         if (propertyStructure.IsTargetArray)
                         {
-                            Array targetArray = (Array)targetCollection;
+                            var targetArray = (Array)targetCollection;
                             var count = sourceCollection.Cast<object>().Count();
                             if (targetArray == null || targetArray.Length != sourceCollection.Cast<object>().Count())
                             {
@@ -396,7 +397,7 @@ namespace Dexih.Utils.CopyProperties
                         }
                         else if (propertyStructure.IsTargetCollection)
                         {
-                            IEnumerable newTargetCollection = (IEnumerable) targetCollection;
+                            var newTargetCollection = (IEnumerable) targetCollection;
                             if (newTargetCollection == null)
                             {
                                 newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
@@ -427,7 +428,7 @@ namespace Dexih.Utils.CopyProperties
                         // if there is a collectionKey, then attempt a delta.
 
                         // create a dictionary, with the key as index, and copy target items to it.
-                        Dictionary<object, object> indexedTargetCollection = new Dictionary<object, object>();
+                        var indexedTargetCollection = new Dictionary<object, object>();
                         targetCollection.GetEnumerator().Reset();
                         foreach (var item in targetCollection)
                         {
@@ -436,7 +437,7 @@ namespace Dexih.Utils.CopyProperties
                         }
 
                         // create a temporary indexed targetcollection, and merge all source items to it.
-                        Dictionary<object, object> newIndexedTargetCollection = new Dictionary<object, object>();
+                        var newIndexedTargetCollection = new Dictionary<object, object>();
                         foreach (var item in sourceCollection)
                         {
                             var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
@@ -483,7 +484,7 @@ namespace Dexih.Utils.CopyProperties
 
                         if (propertyStructure.IsTargetArray)
                         {
-                            Array targetArray = (Array)targetCollection;
+                            var targetArray = (Array)targetCollection;
                             if (targetArray.Length != newIndexedTargetCollection.Count)
                             {
                                 targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, newIndexedTargetCollection.Count) as Array;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dexih.Utils.CopyProperties
 {
@@ -12,6 +10,7 @@ namespace Dexih.Utils.CopyProperties
     {
         public object DefaultKeyValue { get;set;}
         public bool ResetNegativeKeys { get; set; }
+        /// <inheritdoc />
         /// <summary>
         /// Property is a key value in the collection.  The CopyProperties will use this to lookup values in collections and modify (rather than add) to them.
         /// </summary>
