@@ -60,7 +60,5 @@ namespace Dexih.Utils.CopyProperties
         public bool CopyIgnore { get; set; } = false;
         public bool CopyIsValid { get; set; } = false;
         public bool CopyReference { get; set; } = false;
-
-
     }
 }

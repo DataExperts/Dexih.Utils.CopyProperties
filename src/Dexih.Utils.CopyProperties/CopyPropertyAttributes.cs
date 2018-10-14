@@ -61,6 +61,7 @@ namespace Dexih.Utils.CopyProperties
     public class CopyReferenceAttribute : Attribute
     {
     }
+    
 
     /// <summary>
     /// Set the target value to null.

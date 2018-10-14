@@ -140,33 +140,33 @@ namespace Dexih.Utils.CopyProperties
                             propertyElement.ResetNegativeKeys = a.ResetNegativeKeys;
                             propertyElement.DefaultKeyValue = a.DefaultKeyValue;
                             break;
-                        case CopySetNullAttribute a:
+                        case CopySetNullAttribute _:
                             propertyElement.CopySetNull = true;
                             break;
-                        case CopyIfTargetDefaultAttribute a:
+                        case CopyIfTargetDefaultAttribute _:
                             propertyElement.CopyIfTargetDefault = true;
                             propertyElement.DefaultValue = Activator.CreateInstance(srcProp.PropertyType);
                             break;
-                        case CopyIfTargetNotDefaultAttribute a:
+                        case CopyIfTargetNotDefaultAttribute _:
                             propertyElement.CopyIfTargetNotDefault = true;
                             propertyElement.DefaultValue = Activator.CreateInstance(srcProp.PropertyType);
                             break;
-                        case CopyIfTargetNotNullAttribute a:
+                        case CopyIfTargetNotNullAttribute _:
                             propertyElement.CopyIfTargetNotNull = true;
                             break;
-                        case CopyIfTargetNullAttribute a:
+                        case CopyIfTargetNullAttribute _:
                             propertyElement.CopyIfTargetNull = true;
                             break;
-                        case CopyIgnoreAttribute a:
+                        case CopyIgnoreAttribute _:
                             propertyElement.CopyIgnore = true;
                             break;
-                        case CopyIsValidAttribute a:
+                        case CopyIsValidAttribute _:
                             propertyElement.CopyIsValid = true;
                             break;
-                        case CopyParentCollectionKeyAttribute a:
+                        case CopyParentCollectionKeyAttribute _:
                             propertyElement.CopyParentCollectionKey = true;
                             break;
-                        case CopyReferenceAttribute a:
+                        case CopyReferenceAttribute _:
                             propertyElement.CopyReference = true;
                             break;
                     }
@@ -212,33 +212,33 @@ namespace Dexih.Utils.CopyProperties
                                 propertyElement.ResetNegativeKeys = a.ResetNegativeKeys;
                                 propertyElement.DefaultKeyValue = a.DefaultKeyValue;
                                 break;
-                            case CopySetNullAttribute a:
+                            case CopySetNullAttribute _:
                                 propertyElement.CopySetNull = true;
                                 break;
-                            case CopyIfTargetDefaultAttribute a:
+                            case CopyIfTargetDefaultAttribute _:
                                 propertyElement.CopyIfTargetDefault = true;
                                 propertyElement.DefaultValue = Activator.CreateInstance(targetProp.PropertyType);
                                 break;
-                            case CopyIfTargetNotDefaultAttribute a:
+                            case CopyIfTargetNotDefaultAttribute _:
                                 propertyElement.CopyIfTargetNotDefault = true;
                                 propertyElement.DefaultValue = Activator.CreateInstance(targetProp.PropertyType);
                                 break;
-                            case CopyIfTargetNotNullAttribute a:
+                            case CopyIfTargetNotNullAttribute _:
                                 propertyElement.CopyIfTargetNotNull = true;
                                 break;
-                            case CopyIfTargetNullAttribute a:
+                            case CopyIfTargetNullAttribute _:
                                 propertyElement.CopyIfTargetNull = true;
                                 break;
-                            case CopyIgnoreAttribute a:
+                            case CopyIgnoreAttribute _:
                                 propertyElement.CopyIgnore = true;
                                 break;
-                            case CopyIsValidAttribute a:
+                            case CopyIsValidAttribute _:
                                 propertyElement.CopyIsValid = true;
                                 break;
-                            case CopyParentCollectionKeyAttribute a:
+                            case CopyParentCollectionKeyAttribute _:
                                 propertyElement.CopyParentCollectionKey = true;
                                 break;
-                            case CopyReferenceAttribute a:
+                            case CopyReferenceAttribute _:
                                 propertyElement.CopyReference = true;
                                 break;
                         }
@@ -327,7 +327,7 @@ namespace Dexih.Utils.CopyProperties
 
             CopyProperties(source, ref target, shallowCopy);
 
-            if(!Object.ReferenceEquals(originalTarget, target))
+            if(!ReferenceEquals(originalTarget, target))
             {
                 throw new CopyPropertiesTargetInstanceException();
             }
@@ -384,7 +384,7 @@ namespace Dexih.Utils.CopyProperties
                             var count = sourceCollection.Cast<object>().Count();
                             if (targetArray == null || targetArray.Length != sourceCollection.Cast<object>().Count())
                             {
-                                targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, count) as Array;
+                                targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, count);
                             }
 
                             var i = 0;
@@ -407,7 +407,7 @@ namespace Dexih.Utils.CopyProperties
                         }
                         else if (propertyStructure.IsTargetCollection)
                         {
-                            var newTargetCollection = (IEnumerable) targetCollection;
+                            var newTargetCollection = targetCollection;
                             if (newTargetCollection == null)
                             {
                                 newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
@@ -497,7 +497,7 @@ namespace Dexih.Utils.CopyProperties
                             var targetArray = (Array)targetCollection;
                             if (targetArray.Length != newIndexedTargetCollection.Count)
                             {
-                                targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, newIndexedTargetCollection.Count) as Array;
+                                targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, newIndexedTargetCollection.Count);
                             }
 
                             var i = 0;
@@ -511,7 +511,7 @@ namespace Dexih.Utils.CopyProperties
                         }
                         else if (propertyStructure.IsTargetCollection)
                         {
-                            var newTargetCollection = (IEnumerable)targetCollection;
+                            var newTargetCollection = targetCollection;
                             if (newTargetCollection == null || propertyStructure.RemoveMethod == null)
                             {
                                 newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
@@ -680,8 +680,6 @@ namespace Dexih.Utils.CopyProperties
                         {
                             sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false, collectionKeyValue);
                         }
-
-                        continue;
                     }
 
                     // throw new CopyPropertiesException($"CopyProperties failed in property {source.GetType().Name}.  Unknown error.");
