@@ -216,6 +216,10 @@ namespace Dexih.Utils.CopyProperties.Tests
             Assert.Equal("T100", newTeacher.Students[0].TeacherId);
             Assert.Equal("T100", newTeacher.Students[1].TeacherId);
             Assert.Equal("T100", newTeacher.Students[2].TeacherId);
+            
+            Assert.Equal("Edna", newTeacher.Students[0].TeacherName);
+            Assert.Equal("Edna", newTeacher.Students[1].TeacherName);
+            Assert.Equal("Edna", newTeacher.Students[2].TeacherName);
         }
 
         [Fact]
@@ -252,7 +256,7 @@ namespace Dexih.Utils.CopyProperties.Tests
             studentlist.RemoveAt(1);
             studentlist.CopyProperties(newList);
             Assert.Equal(3, newList.Count);
-            Assert.Equal(0, newList.Where(c => c.StudentId == "200").Count());
+            Assert.Equal(0, newList.Count(c => c.StudentId == "200"));
 
         }
 
@@ -261,14 +265,14 @@ namespace Dexih.Utils.CopyProperties.Tests
         [Fact]
         public void CopyCollectionKeyInvalidItemTest()
         {
-            var studentlist = new List<Student2>()
+            var studentList = new List<Student2>()
             {
                 new Student2() { StudentId = "100", FirstName = "John", LastName = "Doe", IsCurrentStudent = true },
                 new Student2() { StudentId = "200", FirstName = "Jane", LastName = "Smith", IsCurrentStudent = true },
                 new Student2() { StudentId = "300", FirstName = "Joe", LastName = "Bloggs", IsCurrentStudent = true },
             };
 
-            var newList = studentlist.CloneProperties<List<Student2>>();
+            var newList = studentList.CloneProperties<List<Student2>>();
 
             Assert.Equal(3, newList.Count);
             Assert.Equal("100", newList[0].StudentId);
@@ -281,22 +285,22 @@ namespace Dexih.Utils.CopyProperties.Tests
             Assert.Equal(true, newList[2].IsCurrentStudent);
 
             // test a modification to the source list.
-            studentlist[0].LastName = "Does";
-            studentlist.CopyProperties(newList);
+            studentList[0].LastName = "Does";
+            studentList.CopyProperties(newList);
             Assert.Equal(3, newList.Count);
             Assert.Equal("100", newList[0].StudentId);
             Assert.Equal("Does", newList[0].LastName);
             Assert.Equal(true, newList[0].IsCurrentStudent);
 
             // test an addition to the source list
-            studentlist.Add(new Student2() { StudentId = "400", FirstName = "Destiny", LastName = "Child", IsCurrentStudent = true });
-            studentlist.CopyProperties(newList);
+            studentList.Add(new Student2() { StudentId = "400", FirstName = "Destiny", LastName = "Child", IsCurrentStudent = true });
+            studentList.CopyProperties(newList);
             Assert.Equal("400", newList[3].StudentId);
             Assert.Equal(true, newList[3].IsCurrentStudent);
 
             // test a remove from the source list
-            studentlist.RemoveAt(1);
-            studentlist.CopyProperties(newList);
+            studentList.RemoveAt(1);
+            studentList.CopyProperties(newList);
             Assert.Equal(4, newList.Count);
             Assert.Equal(1, newList.Where(c => c.StudentId == "200" && !c.IsCurrentStudent).Count());
 

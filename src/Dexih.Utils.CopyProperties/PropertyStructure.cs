@@ -50,6 +50,7 @@ namespace Dexih.Utils.CopyProperties
         public object DefaultKeyValue { get; set; }
         public bool ResetNegativeKeys { get; set; } = false;
         public bool CopyParentCollectionKey { get; set; } = false;
+        public string CopyParentCollectionProperty { get; set; } = null;
         public bool CopySetNull { get; set; } = false;
         public bool CopyIfTargetDefault { get; set; } = false;
         public bool CopyIfTargetNotDefault { get; set; } = false;
