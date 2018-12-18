@@ -122,6 +122,7 @@ namespace Dexih.Utils.CopyProperties
                     {
                         case "Count":
                         case "Capacity":
+                        case "IsReadOnly":
                             continue;
                     }
                 }
@@ -650,17 +651,18 @@ namespace Dexih.Utils.CopyProperties
                             // if the parent collection key uses a named property, then use this.
                             if (source != null)
                             {
-                                var property = parentPropertyInfo.PropertyElements[prop.CopyParentCollectionProperty];
-
-                                if (property.SourcePropertyInfo != null)
+                                if (parentPropertyInfo.PropertyElements.TryGetValue(prop.CopyParentCollectionProperty, out var property))
                                 {
-                                    var value = property.SourcePropertyInfo.GetValue(parentSource);
-                                    prop.TargetPropertyInfo.SetValueIfChanged(target, value);
-                                }
-                                else if (property.TargetPropertyInfo != null)
-                                {
-                                    var value = property.TargetPropertyInfo.GetValue(parentTarget);
-                                    prop.TargetPropertyInfo.SetValueIfChanged(target, value);
+                                    if (property.SourcePropertyInfo != null)
+                                    {
+                                        var value = property.SourcePropertyInfo.GetValue(parentSource);
+                                        prop.TargetPropertyInfo.SetValueIfChanged(target, value);
+                                    }
+                                    else if (property.TargetPropertyInfo != null)
+                                    {
+                                        var value = property.TargetPropertyInfo.GetValue(parentTarget);
+                                        prop.TargetPropertyInfo.SetValueIfChanged(target, value);
+                                    }
                                 }
                             }
                         }
