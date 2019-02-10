@@ -55,6 +55,16 @@ namespace Dexih.Utils.CopyProperties.Tests
         public bool IsCurrentStudent { get; set; }
     }
 
+    public class Student3
+    {
+        [CopyCollectionKey]
+        public string TheStudentId { get; set; }
+        
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+    }
+
     public class CopyTest
     {
         // basic values

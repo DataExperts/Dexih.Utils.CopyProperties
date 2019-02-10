@@ -80,7 +80,7 @@ namespace Dexih.Utils.CopyProperties
                     propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType, parentTypes);
                     if (propertyStructure.ItemStructure.PropertyElements != null)
                     {
-                        propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey);
+                        propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey && c.SourcePropertyInfo != null && c.TargetPropertyInfo != null);
                         propertyStructure.ItemIsValid = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyIsValid);
                     }
                 }
@@ -93,6 +93,14 @@ namespace Dexih.Utils.CopyProperties
             // add any properties to the structure.
             var sourceProps = sourceType.GetProperties();
 
+            PropertyInfo[] targetProps = null;
+            
+            if (targetType != sourceType)
+            {
+                targetProps = targetType.GetProperties();
+            }
+
+
             foreach (var srcProp in sourceProps)
             {
                 // if this is an indexed property (such as Item in a list), then skip.
@@ -101,6 +109,7 @@ namespace Dexih.Utils.CopyProperties
                     continue;
                 }
 
+                // don't get the built in array properties.
                 if(targetType.IsArray)
                 {
                     switch (srcProp.Name)
@@ -116,6 +125,7 @@ namespace Dexih.Utils.CopyProperties
                     }
                 }
 
+                // don't get the built in collection properties.
                 if (propertyStructure.IsTargetCollection)
                 {
                     switch (srcProp.Name)
@@ -127,6 +137,7 @@ namespace Dexih.Utils.CopyProperties
                     }
                 }
 
+     
                 var propertyElement = new PropertyElement();
                 propertyStructure.PropertyElements.Add(srcProp.Name, propertyElement);
 
@@ -187,8 +198,6 @@ namespace Dexih.Utils.CopyProperties
 
             if (targetType != sourceType)
             {
-                var targetProps = targetType.GetProperties();
-
                 foreach (var targetProp in targetProps)
                 {
                     var propertyElement = new PropertyElement();
@@ -446,10 +455,13 @@ namespace Dexih.Utils.CopyProperties
                         foreach (var item in targetCollection)
                         {
                             var key = propertyStructure.ItemCollectionKey.TargetPropertyInfo.GetValue(item);
-                            indexedTargetCollection.Add(key, item);
+                            if (key != null)
+                            {
+                                indexedTargetCollection.Add(key, item);
+                            }
                         }
 
-                        // create a temporary indexed targetcollection, and merge all source items to it.
+                        // create a temporary indexed target collection, and merge all source items to it.
                         var newIndexedTargetCollection = new Dictionary<object, object>();
                         foreach (var item in sourceCollection)
                         {

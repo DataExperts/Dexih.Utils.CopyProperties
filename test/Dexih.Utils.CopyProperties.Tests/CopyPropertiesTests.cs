@@ -259,6 +259,23 @@ namespace Dexih.Utils.CopyProperties.Tests
             Assert.Equal(0, newList.Count(c => c.StudentId == "200"));
 
         }
+        
+        [Fact]
+        public void CopyCollectionKeyTest2()
+        {
+            var studentList = new List<Student>()
+            {
+                new Student() { StudentId = "100", FirstName = "John", LastName = "Doe" },
+                new Student() { StudentId = "200", FirstName = "Jane", LastName = "Smith" },
+                new Student() { StudentId = "300", FirstName = "Joe", LastName = "Bloggs" },
+            };
+
+            var newList = studentList.CloneProperties<List<Student3>>();
+
+            Assert.Equal(3, newList.Count);
+            Assert.Equal("John", newList[0].FirstName);
+            Assert.Equal("Doe", newList[0].LastName);
+        }
 
      
 
