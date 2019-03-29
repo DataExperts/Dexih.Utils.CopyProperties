@@ -11,14 +11,23 @@ namespace Dexih.Utils.CopyProperties
     /// </summary>
     public static class Reflection
     {
+        private static Dictionary<(Type sourcetype, Type targetType), PropertyStructure> _cachePropertyStructures = new Dictionary<(Type sourcetype, Type targetType), PropertyStructure>();
+
         /// <summary>
         /// Extension for 'Object' that copies matching properties from the source to destination object.
         /// If the onlySimpleProperties = false this will also make copies of child objects such as collections, and arrays.
         /// </summary>
         /// <param name="sourceType"></param>
         /// <param name="targetType"></param>
-        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType = null, Dictionary<Type, PropertyStructure> parentTypes = null)
+        /// <param name="parentTypes"></param>
+        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType = null)
         {
+            if (_cachePropertyStructures.TryGetValue((sourceType, targetType), out var existingPropertyStructure))
+            {
+                return existingPropertyStructure;
+            }
+                
+            
             if(targetType == null)
             {
                 targetType = sourceType;
@@ -37,18 +46,6 @@ namespace Dexih.Utils.CopyProperties
                 return propertyStructure;
             }
 
-            if (parentTypes == null)
-            {
-                parentTypes = new Dictionary<Type, PropertyStructure>();
-            }
-
-            if (parentTypes.ContainsKey(sourceType))
-            {
-                return parentTypes[sourceType];
-            }
-
-            parentTypes.Add(sourceType, propertyStructure);
-
             // if the structure is a collection, or array
             if (typeof(IEnumerable).IsAssignableFrom(sourceType))
             {
@@ -60,7 +57,7 @@ namespace Dexih.Utils.CopyProperties
                 {
                     propertyStructure.IsTargetArray = true;
                     var targetItemType = targetType.GetElementType();
-                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType, parentTypes);
+                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
                     if (propertyStructure.ItemStructure.PropertyElements != null)
                     {
                         propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey);
@@ -77,7 +74,7 @@ namespace Dexih.Utils.CopyProperties
                     }
                     var targetItemType = propertyStructure.AddMethod.GetParameters()[0].ParameterType;
                     propertyStructure.IsTargetCollection = true;
-                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType, parentTypes);
+                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
                     if (propertyStructure.ItemStructure.PropertyElements != null)
                     {
                         propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey && c.SourcePropertyInfo != null && c.TargetPropertyInfo != null);
@@ -191,7 +188,7 @@ namespace Dexih.Utils.CopyProperties
                     propertyElement.TargetPropertyInfo = srcProp;
                     if (!propertyElement.CopyIgnore)
                     {
-                        propertyElement.PropertyStructure = GetPropertyStructure(srcProp.PropertyType, srcProp.PropertyType, parentTypes);
+                        propertyElement.PropertyStructure = GetPropertyStructure(srcProp.PropertyType, srcProp.PropertyType);
                     }
                 }
             }
@@ -261,7 +258,7 @@ namespace Dexih.Utils.CopyProperties
 
                     if (!propertyElement.CopyIgnore && propertyElement.SourcePropertyInfo != null)
                     {
-                        propertyElement.PropertyStructure = GetPropertyStructure(propertyElement.SourcePropertyInfo.PropertyType, targetProp.PropertyType, parentTypes);
+                        propertyElement.PropertyStructure = GetPropertyStructure(propertyElement.SourcePropertyInfo.PropertyType, targetProp.PropertyType);
                     }
 
                 }
@@ -745,7 +742,7 @@ namespace Dexih.Utils.CopyProperties
         }
 
 
-             public static bool IsSimpleType(this Type type)
+        public static bool IsSimpleType(this Type type)
         {
             var typeInfo = type.GetTypeInfo();
             return

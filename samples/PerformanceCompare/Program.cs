@@ -24,6 +24,12 @@ namespace PerformanceCompare
             Console.WriteLine($"Time to copy empty class: {stopwatch.Elapsed} {copyClass.children.Count} ");
 
             stopwatch.Restart();
+            copyClass = original.CloneProperties<SampleClass>();
+
+            Console.WriteLine($"Time to copy empty class(cached): {stopwatch.Elapsed} {copyClass.children.Count} ");
+
+            
+            stopwatch.Restart();
             original.CopyProperties(copyClass);
             Console.WriteLine($"Time to copy populated class: {stopwatch.Elapsed} {copyClass.children.Count}");
 
