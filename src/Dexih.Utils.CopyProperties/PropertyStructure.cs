@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 
 namespace Dexih.Utils.CopyProperties
 {
     public class PropertyStructure
     {
+
         public Dictionary<string, PropertyElement> PropertyElements { get; set; } = new Dictionary<string, PropertyElement>();
 
         /// <summary>

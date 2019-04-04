@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +12,21 @@ namespace Dexih.Utils.CopyProperties
     /// </summary>
     public static class Reflection
     {
-        private static Dictionary<(Type sourcetype, Type targetType), PropertyStructure> _cachePropertyStructures = new Dictionary<(Type sourcetype, Type targetType), PropertyStructure>();
+        private static ConcurrentDictionary<(Type sourcetype, Type targetType), PropertyStructure> _cachePropertyStructures = new ConcurrentDictionary<(Type sourcetype, Type targetType), PropertyStructure>();
+
+        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType = null)
+        {
+            if(targetType == null)
+            {
+                targetType = sourceType;
+            }
+
+            var propertyStructure = _cachePropertyStructures.GetOrAdd((sourceType, targetType),
+                type => BuildPropertyStructure(type.sourcetype, type.targetType, new Dictionary<(Type sourcetype, Type targetType), PropertyStructure>()));
+
+            return propertyStructure;
+        }
+
 
         /// <summary>
         /// Extension for 'Object' that copies matching properties from the source to destination object.
@@ -20,17 +35,12 @@ namespace Dexih.Utils.CopyProperties
         /// <param name="sourceType"></param>
         /// <param name="targetType"></param>
         /// <param name="parentTypes"></param>
-        public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType = null)
+        private static PropertyStructure BuildPropertyStructure(Type sourceType, Type targetType, Dictionary<(Type sourcetype, Type targetType), PropertyStructure> otherTypes)
         {
-            if (_cachePropertyStructures.TryGetValue((sourceType, targetType), out var existingPropertyStructure))
+            
+            if(otherTypes.TryGetValue((sourceType, targetType), out var existingPropertyStructure))
             {
                 return existingPropertyStructure;
-            }
-                
-            
-            if(targetType == null)
-            {
-                targetType = sourceType;
             }
 
             var propertyStructure = new PropertyStructure
@@ -39,6 +49,8 @@ namespace Dexih.Utils.CopyProperties
                 SourceType = sourceType,
                 TargetType = targetType
             };
+
+            otherTypes.Add((sourceType, targetType), propertyStructure);
 
             // if this is a simple type, we're done.
             if (propertyStructure.IsSimpleType)
@@ -57,7 +69,7 @@ namespace Dexih.Utils.CopyProperties
                 {
                     propertyStructure.IsTargetArray = true;
                     var targetItemType = targetType.GetElementType();
-                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
+                    propertyStructure.ItemStructure = BuildPropertyStructure(sourceItemType, targetItemType, otherTypes);
                     if (propertyStructure.ItemStructure.PropertyElements != null)
                     {
                         propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey);
@@ -74,7 +86,7 @@ namespace Dexih.Utils.CopyProperties
                     }
                     var targetItemType = propertyStructure.AddMethod.GetParameters()[0].ParameterType;
                     propertyStructure.IsTargetCollection = true;
-                    propertyStructure.ItemStructure = GetPropertyStructure(sourceItemType, targetItemType);
+                    propertyStructure.ItemStructure = BuildPropertyStructure(sourceItemType, targetItemType, otherTypes);
                     if (propertyStructure.ItemStructure.PropertyElements != null)
                     {
                         propertyStructure.ItemCollectionKey = propertyStructure.ItemStructure.PropertyElements.Values.SingleOrDefault(c => c.CopyCollectionKey && c.SourcePropertyInfo != null && c.TargetPropertyInfo != null);
@@ -188,7 +200,7 @@ namespace Dexih.Utils.CopyProperties
                     propertyElement.TargetPropertyInfo = srcProp;
                     if (!propertyElement.CopyIgnore)
                     {
-                        propertyElement.PropertyStructure = GetPropertyStructure(srcProp.PropertyType, srcProp.PropertyType);
+                        propertyElement.PropertyStructure = BuildPropertyStructure(srcProp.PropertyType, srcProp.PropertyType, otherTypes);
                     }
                 }
             }
@@ -258,12 +270,12 @@ namespace Dexih.Utils.CopyProperties
 
                     if (!propertyElement.CopyIgnore && propertyElement.SourcePropertyInfo != null)
                     {
-                        propertyElement.PropertyStructure = GetPropertyStructure(propertyElement.SourcePropertyInfo.PropertyType, targetProp.PropertyType);
+                        propertyElement.PropertyStructure = BuildPropertyStructure(propertyElement.SourcePropertyInfo.PropertyType, targetProp.PropertyType, otherTypes);
                     }
 
                 }
             }
-
+            
             return propertyStructure;
         }
 
