@@ -17,7 +17,6 @@ namespace Dexih.Utils.CopyProperties
         public CopyCollectionKeyAttribute() { }
 
         /// <summary>
-        /// <see cref="CollectionKeyAttribute"/>
         /// </summary>
         /// <param name="defaultKeyValue">Value which will be ignored as a key always added to the target collection.</param>
         /// <param name="resetNegativeKeys">If true, any key values less than 0 will be reset to the defaultKeyValue.</param>

@@ -34,7 +34,7 @@ namespace Dexih.Utils.CopyProperties
         /// </summary>
         /// <param name="sourceType"></param>
         /// <param name="targetType"></param>
-        /// <param name="parentTypes"></param>
+        /// <param name="otherTypes"></param>
         private static PropertyStructure BuildPropertyStructure(Type sourceType, Type targetType, Dictionary<(Type sourcetype, Type targetType), PropertyStructure> otherTypes)
         {
             
@@ -209,7 +209,7 @@ namespace Dexih.Utils.CopyProperties
             {
                 foreach (var targetProp in targetProps)
                 {
-                    var propertyElement = new PropertyElement();
+                    PropertyElement propertyElement;
 
                     if (propertyStructure.PropertyElements.ContainsKey(targetProp.Name))
                     {
@@ -364,6 +364,7 @@ namespace Dexih.Utils.CopyProperties
         /// <param name="shallowCopy">Indicates only simple values will be copied such as string, int, date etc.  This includes any properties that can be copied with a simple "=". </param>
         /// <param name="parentPropertyInfo"></param>
         /// <param name="parentSource"></param>
+        /// <param name="parentTarget"></param>
         public static void CopyProperties(this object source, ref object target, PropertyStructure propertyStructure, bool shallowCopy, PropertyStructure parentPropertyInfo, object parentSource, object parentTarget)
         { 
             // If source is null throw an exception
