@@ -44,13 +44,16 @@ namespace Dexih.Utils.CopyProperties
     public class CopyParentCollectionKeyAttribute : Attribute
     {
         public string ParentProperty { get; set; }
+        public string ParentEntity { get; set; }
+
         public CopyParentCollectionKeyAttribute()
         {
         }
         
-        public CopyParentCollectionKeyAttribute(string parentProperty)
+        public CopyParentCollectionKeyAttribute(string parentProperty, string parentEntity = null)
         {
             ParentProperty = parentProperty;
+            ParentEntity = parentEntity;
         }
     }
 

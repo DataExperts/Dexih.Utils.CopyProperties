@@ -12,7 +12,7 @@ namespace Dexih.Utils.CopyProperties
     /// </summary>
     public static class Reflection
     {
-        private static ConcurrentDictionary<(Type sourcetype, Type targetType), PropertyStructure> _cachePropertyStructures = new ConcurrentDictionary<(Type sourcetype, Type targetType), PropertyStructure>();
+        private static readonly ConcurrentDictionary<(Type sourcetype, Type targetType), PropertyStructure> _cachePropertyStructures = new ConcurrentDictionary<(Type sourcetype, Type targetType), PropertyStructure>();
 
         public static PropertyStructure GetPropertyStructure(Type sourceType, Type targetType = null)
         {
@@ -187,6 +187,7 @@ namespace Dexih.Utils.CopyProperties
                         case CopyParentCollectionKeyAttribute attribute:
                             propertyElement.CopyParentCollectionKey = true;
                             propertyElement.CopyParentCollectionProperty = attribute.ParentProperty;
+                            propertyElement.CopyParentCollectionEntity = attribute.ParentEntity;
                             break;
                         case CopyReferenceAttribute _:
                             propertyElement.CopyReference = true;
@@ -258,6 +259,7 @@ namespace Dexih.Utils.CopyProperties
                             case CopyParentCollectionKeyAttribute attribute:
                                 propertyElement.CopyParentCollectionKey = true;
                                 propertyElement.CopyParentCollectionProperty = attribute.ParentProperty;
+                                propertyElement.CopyParentCollectionEntity = attribute.ParentEntity;
                                 break;
                             case CopyReferenceAttribute _:
                                 propertyElement.CopyReference = true;
@@ -675,12 +677,14 @@ namespace Dexih.Utils.CopyProperties
                             {
                                 if (parentPropertyInfo.PropertyElements.TryGetValue(prop.CopyParentCollectionProperty, out var property))
                                 {
-                                    if (property.SourcePropertyInfo != null)
+                                    if (property.SourcePropertyInfo != null && (prop.CopyParentCollectionEntity == null ||
+                                                                                property.SourcePropertyInfo.Name == prop.CopyParentCollectionEntity))
                                     {
                                         var value = property.SourcePropertyInfo.GetValue(parentSource);
                                         prop.TargetPropertyInfo.SetValueIfChanged(target, value);
                                     }
-                                    else if (property.TargetPropertyInfo != null)
+                                    else if (property.TargetPropertyInfo != null && (prop.CopyParentCollectionEntity == null ||
+                                                                                     property.TargetPropertyInfo.Name == prop.CopyParentCollectionEntity))
                                     {
                                         var value = property.TargetPropertyInfo.GetValue(parentTarget);
                                         prop.TargetPropertyInfo.SetValueIfChanged(target, value);
