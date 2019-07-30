@@ -195,6 +195,11 @@ namespace Dexih.Utils.CopyProperties
                     }
                 }
 
+                if (!propertyElement.CopyIgnore && srcProp.PropertyType == typeof(object))
+                {
+                    propertyElement.CopyReference = true;
+                }
+
                 propertyElement.SourcePropertyInfo = srcProp;
                 if (sourceType == targetType)
                 {

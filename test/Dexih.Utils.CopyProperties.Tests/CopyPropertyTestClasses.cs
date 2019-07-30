@@ -85,6 +85,8 @@ namespace Dexih.Utils.CopyProperties.Tests
         public TimeSpan TimespanValue { get; set; }
         public Guid GuidValue { get; set; }
         public ETest EnumValue { get; set; }
+        
+        public object ObjectValue { get; set; }
 
         public ChildTest NullChildTest { get; set; } = null;
 
@@ -121,6 +123,7 @@ namespace Dexih.Utils.CopyProperties.Tests
             DoubleValue = 10.1;
             SingleValue = 11;
             StringValue = "12";
+            ObjectValue = 123;
             BooleanValue = true;
             DatetimeValue = new DateTime(2001, 01, 01);
             TimespanValue = new TimeSpan(1, 2, 3);

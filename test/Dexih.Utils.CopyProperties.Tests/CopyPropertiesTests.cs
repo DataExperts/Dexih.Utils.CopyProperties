@@ -413,6 +413,11 @@ namespace Dexih.Utils.CopyProperties.Tests
 
                     Assert.Null(item2);
                 }
+                
+                else if (property.PropertyType == typeof(Object))
+                {
+                    Assert.Equal(property.GetValue(copyTest1), property.GetValue(copyTest2));
+                }
             }
     
             // confirm all properties were tested
@@ -421,7 +426,7 @@ namespace Dexih.Utils.CopyProperties.Tests
             Assert.Equal(childValueCount, 3);
         }
 
-   
+
 
     }
 }
