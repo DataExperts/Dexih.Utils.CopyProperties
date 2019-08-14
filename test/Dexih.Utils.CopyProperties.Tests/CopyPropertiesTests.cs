@@ -352,21 +352,42 @@ namespace Dexih.Utils.CopyProperties.Tests
 
                 else if(Reflection.IsNonStringEnumerable(property))
                 {
-                    enumerableCount++;
-                    var items1 = (IEnumerable)property.GetValue(copyTest1, null);
-                    var items2 = (IEnumerable)property.GetValue(copyTest2, null);
-
-                    var items1Array = items1.Cast<ChildTest>().ToArray();
-                    var items2Array = items2.Cast<ChildTest>().ToArray();
-
-                    Assert.Equal(items1Array.Length, items2Array.Length);
-
-                    for(var i =0; i < items1Array.Length; i++)
+                    var elementType = property.PropertyType.GetElementType();
+                    if (elementType == null)
                     {
-                        Assert.Equal(items1Array[i].Key, items2Array[i].Key);
-                        Assert.Equal(items1Array[i].Name, items2Array[i].Name);
-                        Assert.Equal(items1Array[i].Valid, items2Array[i].Valid);
-                        Assert.NotEqual(items1Array[i].IgnoreThis, items2Array[i].IgnoreThis);
+                        elementType = property.PropertyType.GenericTypeArguments.Length > 0 ? property.PropertyType.GenericTypeArguments[0] : null;
+                    }
+                    if (elementType == typeof(int))
+                    {
+                        enumerableCount++;
+                        var items1 = (IEnumerable) property.GetValue(copyTest1, null);
+                        var items2 = (IEnumerable) property.GetValue(copyTest2, null);
+
+                        var items1Array = items1.Cast<int>().ToArray();
+                        var items2Array = items2.Cast<int>().ToArray();
+
+                        for (var i = 0; i < items1Array.Count(); i++)
+                        {
+                            Assert.Equal(items1Array[i], items2Array[i]);
+                        }
+                    } else
+                    {
+                        enumerableCount++;
+                        var items1 = (IEnumerable) property.GetValue(copyTest1, null);
+                        var items2 = (IEnumerable) property.GetValue(copyTest2, null);
+
+                        var items1Array = items1.Cast<ChildTest>().ToArray();
+                        var items2Array = items2.Cast<ChildTest>().ToArray();
+
+                        Assert.Equal(items1Array.Length, items2Array.Length);
+
+                        for (var i = 0; i < items1Array.Length; i++)
+                        {
+                            Assert.Equal(items1Array[i].Key, items2Array[i].Key);
+                            Assert.Equal(items1Array[i].Name, items2Array[i].Name);
+                            Assert.Equal(items1Array[i].Valid, items2Array[i].Valid);
+                            Assert.NotEqual(items1Array[i].IgnoreThis, items2Array[i].IgnoreThis);
+                        }
                     }
                 }
 
@@ -422,7 +443,7 @@ namespace Dexih.Utils.CopyProperties.Tests
     
             // confirm all properties were tested
             Assert.Equal(count, 17);
-            Assert.Equal(enumerableCount, 5);
+            Assert.Equal(enumerableCount, 7);
             Assert.Equal(childValueCount, 3);
         }
 

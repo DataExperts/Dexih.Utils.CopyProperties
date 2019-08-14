@@ -100,6 +100,9 @@ namespace Dexih.Utils.CopyProperties.Tests
 
         [CopyReference]
         public ChildTest ChildCopyReference { get; set; }
+        
+        public int[] NumberArray { get; set; }
+        public List<int> NumberList { get; set; }
 
         public ChildTest[] ChildArray { get; set; }
         public List<ChildTest> ChildList { get; set; }
@@ -134,6 +137,9 @@ namespace Dexih.Utils.CopyProperties.Tests
             ChildNullTarget = ChildValue;
             ChildCopyReference = ChildValue;
 
+            NumberArray = new[] {1, 2, 3,};
+            NumberList = new List<int> {1,2,3};
+            
             ChildArray = new ChildTest[]
             {
                     new ChildTest() {Key = 1, Name = "value 1", Valid = true, IgnoreThis = "abc" },
