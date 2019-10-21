@@ -65,6 +65,11 @@ namespace Dexih.Utils.CopyProperties.Tests
 
     }
 
+    public class ArrayItems
+    {
+        public ETest[] Items { get; set; }
+    }
+
     public class CopyTest
     {
         // basic values
@@ -106,6 +111,8 @@ namespace Dexih.Utils.CopyProperties.Tests
 
         public ChildTest[] ChildArray { get; set; }
         public List<ChildTest> ChildList { get; set; }
+        
+        public ETest[] EnumArray { get; set; }
         public Children Children { get; set; }
 
         public object[] EmptyArray { get; set; }
@@ -137,6 +144,7 @@ namespace Dexih.Utils.CopyProperties.Tests
             ChildNullTarget = ChildValue;
             ChildCopyReference = ChildValue;
 
+            EnumArray = new[] {ETest.v1, ETest.v2, ETest.v3};
             NumberArray = new[] {1, 2, 3,};
             NumberList = new List<int> {1,2,3};
             

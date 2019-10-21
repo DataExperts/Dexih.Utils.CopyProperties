@@ -385,7 +385,6 @@ namespace Dexih.Utils.CopyProperties
                 throw new CopyPropertiesSimpleTypeException(propertyStructure.TargetType);
             }
 
-
             PropertyStructure collectionParentPropertyInfo = parentPropertyInfo;
             object collectionParentSource = parentSource;
             object collectionParentTarget = parentTarget;
@@ -409,38 +408,63 @@ namespace Dexih.Utils.CopyProperties
                     {
                         if (propertyStructure.IsTargetArray)
                         {
+                            var i = 0;
+                            var hasChanged = false;
                             var targetArray = (Array)targetCollection;
                             var count = sourceCollection.Cast<object>().Count();
-                            if (targetArray == null || targetArray.Length != sourceCollection.Cast<object>().Count())
+                            if (targetArray == null || targetArray.Length != count)
                             {
                                 targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, count);
+                                hasChanged = true;
                             }
-
-                            var i = 0;
-                            foreach (var item in sourceCollection)
+                            else
                             {
-                                if (propertyStructure.ItemStructure.IsSimpleType)
+                                i = 0;
+                                foreach (var sourceItem in sourceCollection)
                                 {
-                                    targetArray.SetValue(item, i);
+                                    if (!Equals(sourceItem, targetArray.GetValue(i)))
+                                    {
+                                        targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, count);
+                                        hasChanged = true;
+                                        break;
+                                    }
+
+                                    i++;
                                 }
-                                else
-                                {
-                                    var targetItem = Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
-                                    item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false, collectionParentPropertyInfo, collectionParentSource, collectionParentTarget);
-                                    targetArray.SetValue(targetItem, i);
-                                }
-                                i++;
                             }
 
-                            target = targetArray;
+                            if (hasChanged)
+                            {
+                                i = 0;
+                                foreach (var item in sourceCollection)
+                                {
+                                    if (propertyStructure.ItemStructure.IsSimpleType)
+                                    {
+                                        targetArray.SetValue(item, i);
+                                    }
+                                    else
+                                    {
+                                        var targetItem =
+                                            Activator.CreateInstance(propertyStructure.ItemStructure.TargetType);
+                                        item.CopyProperties(ref targetItem, propertyStructure.ItemStructure, false,
+                                            collectionParentPropertyInfo, collectionParentSource,
+                                            collectionParentTarget);
+                                        targetArray.SetValue(targetItem, i);
+                                    }
+
+                                    i++;
+                                }
+
+                                target = targetArray;
+                            }
                         }
                         else if (propertyStructure.IsTargetCollection)
                         {
-                            var newTargetCollection = targetCollection;
-                            if (newTargetCollection == null)
-                            {
-                                newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
-                            }
+//                            var newTargetCollection = targetCollection;
+//                            if (newTargetCollection == null)
+//                            {
+//                            }
+                            var newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
                             foreach (var item in sourceCollection)
                             {
                                 if (propertyStructure.ItemStructure.IsSimpleType)
@@ -751,6 +775,8 @@ namespace Dexih.Utils.CopyProperties
                         {
                             sourceValue.CopyProperties(ref targetValue, prop.PropertyStructure, false, collectionParentPropertyInfo, collectionParentSource, collectionParentTarget);
                         }
+                        
+                        prop.TargetPropertyInfo.SetValue(target, targetValue);
                     }
 
                     // throw new CopyPropertiesException($"CopyProperties failed in property {source.GetType().Name}.  Unknown error.");

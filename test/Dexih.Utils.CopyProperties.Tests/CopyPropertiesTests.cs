@@ -78,6 +78,7 @@ namespace Dexih.Utils.CopyProperties.Tests
             // confirm the childarray was not copied
             Assert.Null(copyTest2.ChildArray);
             Assert.Null(copyTest2.ChildList);
+            Assert.Null(copyTest2.EnumArray);
 
             // confirm all properties were tested
             Assert.Equal(count, 17);
@@ -370,7 +371,7 @@ namespace Dexih.Utils.CopyProperties.Tests
                         {
                             Assert.Equal(items1Array[i], items2Array[i]);
                         }
-                    } else
+                    } else if(elementType == typeof(ChildTest) || elementType == null || elementType == typeof(Object))
                     {
                         enumerableCount++;
                         var items1 = (IEnumerable) property.GetValue(copyTest1, null);
@@ -388,6 +389,10 @@ namespace Dexih.Utils.CopyProperties.Tests
                             Assert.Equal(items1Array[i].Valid, items2Array[i].Valid);
                             Assert.NotEqual(items1Array[i].IgnoreThis, items2Array[i].IgnoreThis);
                         }
+                    }
+                    else
+                    {
+                        enumerableCount++;
                     }
                 }
 
@@ -443,11 +448,32 @@ namespace Dexih.Utils.CopyProperties.Tests
     
             // confirm all properties were tested
             Assert.Equal(count, 17);
-            Assert.Equal(enumerableCount, 7);
+            Assert.Equal(enumerableCount, 8);
             Assert.Equal(childValueCount, 3);
+
+            Assert.Equal(3, copyTest2.EnumArray.Length);
+            Assert.Equal(3, copyTest2.NumberArray.Length);
+            Assert.Equal(3, copyTest2.NumberList.Count);
+
+            Assert.True(copyTest1.EnumArray.SequenceEqual(copyTest2.EnumArray));
+            Assert.True(copyTest1.NumberArray.SequenceEqual(copyTest2.NumberArray));
+            Assert.True(copyTest1.NumberList.SequenceEqual(copyTest2.NumberList));
+            
         }
 
 
+        [Fact]
+        public void CopyArrayTest()
+        {
+            var value1 = new ArrayItems() {Items = new[] {ETest.v1, ETest.v2}};
+            var value2 = new ArrayItems() {Items = new ETest[0]};
+            
+            value1.CopyProperties(value2, false);
+            
+            Assert.Equal(2, value2.Items.Length);
+            Assert.Equal(ETest.v1, value2.Items[0]);
+            Assert.Equal(ETest.v2, value2.Items[1]);
+        }
 
     }
 }

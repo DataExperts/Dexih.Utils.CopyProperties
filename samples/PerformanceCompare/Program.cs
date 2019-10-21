@@ -14,29 +14,43 @@ namespace PerformanceCompare
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             var original = new SampleClass();
-            original.InitSamples(50);
+            original.InitSamples(50000);
 
-            Console.WriteLine($"Time to create sample class: {stopwatch.Elapsed}");
+//            Console.WriteLine($"Time to create sample class: {stopwatch.Elapsed}");
+//
+//            stopwatch.Restart();
+//            var copyClass = original.CloneProperties<SampleClass>();
+//
+//            Console.WriteLine($"Time to copy empty class: {stopwatch.Elapsed} {copyClass.children.Count} ");
+//
+//            stopwatch.Restart();
+//            copyClass = original.CloneProperties<SampleClass>();
+//
+//            Console.WriteLine($"Time to copy empty class(cached): {stopwatch.Elapsed} {copyClass.children.Count} ");
+//
+//            
+//            stopwatch.Restart();
+//            original.CopyProperties(copyClass);
+//            Console.WriteLine($"Time to copy populated class: {stopwatch.Elapsed} {copyClass.children.Count}");
 
             stopwatch.Restart();
-            var copyClass = original.CloneProperties<SampleClass>();
-
-            Console.WriteLine($"Time to copy empty class: {stopwatch.Elapsed} {copyClass.children.Count} ");
+            var copy = original.CloneProperties<SampleClass>();
+            Console.WriteLine($"Time to copy populated class: {stopwatch.Elapsed} {copy.children.Count}");
 
             stopwatch.Restart();
-            copyClass = original.CloneProperties<SampleClass>();
-
-            Console.WriteLine($"Time to copy empty class(cached): {stopwatch.Elapsed} {copyClass.children.Count} ");
+            copy = original.CloneProperties<SampleClass>();
+            Console.WriteLine($"Time to copy populated class (2nd): {stopwatch.Elapsed} {copy.children.Count}");
 
             
-            stopwatch.Restart();
-            original.CopyProperties(copyClass);
-            Console.WriteLine($"Time to copy populated class: {stopwatch.Elapsed} {copyClass.children.Count}");
-
             stopwatch.Restart();
             var serialized = JsonConvert.SerializeObject(original);
             var searlizedCopy = JsonConvert.DeserializeObject<SampleClass>(serialized);
             Console.WriteLine($"Time to copy via json serialize: {stopwatch.Elapsed} {searlizedCopy.children.Count}");
+
+            stopwatch.Restart();
+            serialized = JsonConvert.SerializeObject(original);
+            searlizedCopy = JsonConvert.DeserializeObject<SampleClass>(serialized);
+            Console.WriteLine($"Time to copy via json serialize(2nd): {stopwatch.Elapsed} {searlizedCopy.children.Count}");
 
             Console.ReadLine();
         }
