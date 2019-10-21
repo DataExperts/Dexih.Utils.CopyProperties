@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -424,7 +424,6 @@ namespace Dexih.Utils.CopyProperties
                                 {
                                     if (!Equals(sourceItem, targetArray.GetValue(i)))
                                     {
-                                        targetArray = Array.CreateInstance(propertyStructure.ItemStructure.TargetType, count);
                                         hasChanged = true;
                                         break;
                                     }
@@ -460,11 +459,11 @@ namespace Dexih.Utils.CopyProperties
                         }
                         else if (propertyStructure.IsTargetCollection)
                         {
-//                            var newTargetCollection = targetCollection;
-//                            if (newTargetCollection == null)
-//                            {
-//                            }
-                            var newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
+                            var newTargetCollection = targetCollection;
+                            if (newTargetCollection == null)
+                            {
+                                newTargetCollection = Activator.CreateInstance(propertyStructure.TargetType) as IEnumerable;
+                            }
                             foreach (var item in sourceCollection)
                             {
                                 if (propertyStructure.ItemStructure.IsSimpleType)
