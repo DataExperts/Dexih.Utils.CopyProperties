@@ -103,11 +103,13 @@ namespace Dexih.Utils.CopyProperties.Tests
             var array1 = new string[] { "123", "456", "789" };
             var array2 = new string[] { "abc", "def", "hij" };
 
-            array1.CopyProperties(array2);
+            Assert.Throws(typeof(CopyPropertiesTargetInstanceException), () => array1.CopyProperties(array2));
 
-            Assert.Equal("123", array2[0]);
-            Assert.Equal("456", array2[1]);
-            Assert.Equal("789", array2[2]);
+//            array1.CopyProperties(array2);
+//
+//            Assert.Equal("123", array2[0]);
+//            Assert.Equal("456", array2[1]);
+//            Assert.Equal("789", array2[2]);
         }
 
         [Fact]

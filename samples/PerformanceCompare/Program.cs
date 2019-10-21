@@ -1,61 +1,54 @@
 ﻿using Dexih.Utils.CopyProperties;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 using Newtonsoft.Json;
 
 namespace PerformanceCompare
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Create class");
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            var original = new SampleClass();
-            original.InitSamples(50000);
-
-//            Console.WriteLine($"Time to create sample class: {stopwatch.Elapsed}");
-//
-//            stopwatch.Restart();
-//            var copyClass = original.CloneProperties<SampleClass>();
-//
-//            Console.WriteLine($"Time to copy empty class: {stopwatch.Elapsed} {copyClass.children.Count} ");
-//
-//            stopwatch.Restart();
-//            copyClass = original.CloneProperties<SampleClass>();
-//
-//            Console.WriteLine($"Time to copy empty class(cached): {stopwatch.Elapsed} {copyClass.children.Count} ");
-//
-//            
-//            stopwatch.Restart();
-//            original.CopyProperties(copyClass);
-//            Console.WriteLine($"Time to copy populated class: {stopwatch.Elapsed} {copyClass.children.Count}");
-
-            stopwatch.Restart();
-            var copy = original.CloneProperties<SampleClass>();
-            Console.WriteLine($"Time to copy populated class: {stopwatch.Elapsed} {copy.children.Count}");
-
-            stopwatch.Restart();
-            copy = original.CloneProperties<SampleClass>();
-            Console.WriteLine($"Time to copy populated class (2nd): {stopwatch.Elapsed} {copy.children.Count}");
-
-            
-            stopwatch.Restart();
-            var serialized = JsonConvert.SerializeObject(original);
-            var searlizedCopy = JsonConvert.DeserializeObject<SampleClass>(serialized);
-            Console.WriteLine($"Time to copy via json serialize: {stopwatch.Elapsed} {searlizedCopy.children.Count}");
-
-            stopwatch.Restart();
-            serialized = JsonConvert.SerializeObject(original);
-            searlizedCopy = JsonConvert.DeserializeObject<SampleClass>(serialized);
-            Console.WriteLine($"Time to copy via json serialize(2nd): {stopwatch.Elapsed} {searlizedCopy.children.Count}");
-
-            Console.ReadLine();
+            BenchmarkRunner.Run<Copy>();  
         }
     }
 
+    [RPlotExporter, RankColumn]
+    public class Copy
+    {
+        SampleClass original = new SampleClass();
+
+        [Params(1000, 10000)]
+        public int N;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+                
+            original.InitSamples(50000);
+        }
+
+        [Benchmark]
+        public void CopyProperties() => original.CloneProperties<SampleClass>();
+
+        [Benchmark]
+        public void NewtonSoftCopy()
+        {
+            var serialized = JsonConvert.SerializeObject(original);
+            var searlizedCopy = JsonConvert.DeserializeObject<SampleClass>(serialized);
+        }
+
+        [Benchmark]
+        public void TextJsonCopy()
+        {
+            var serialized = System.Text.Json.JsonSerializer.Serialize(original);
+            var searlizedCopy = System.Text.Json.JsonSerializer.Deserialize<SampleClass>(serialized);
+            
+        }
+    }
+
+    
     class SampleClass
     {
         public string value1 { get; set; }
