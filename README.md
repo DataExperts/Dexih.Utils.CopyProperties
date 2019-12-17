@@ -5,6 +5,10 @@
 [nuget]:     https://www.nuget.org/packages/Dexih.Utils.CopyProperties
 [nuget-img]: https://badge.fury.io/nu/Dexih.Utils.CopyProperties.svg
 [nuget-name]: Dexih.Utils.CopyProperties
+[dex-img]: https://dataexpertsgroup.com/assets/img/dex_web_logo.png
+[dex]: https://dataexpertsgroup.com
+
+[![][dex-img]][dex]
 
 [![Build status][build-img]][build] [![Nuget][nuget-img]][nuget]
 
