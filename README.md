@@ -12,11 +12,14 @@ The `CopyProperties` library allows deep copy of c# objects along with merge and
 
 The primary benefits:
 
- * Performs well, faster then via serialization.
- * Can copy between two classes with similar properties, even when they are not the same primary types.
+ * Performs well, often faster then via serialization.
+ * Copy between two classes with similar properties, even when they are not the same primary types.
  * Use property decorators to customize how properties should be copied (such as by reference, ignored etc.)
- * Can merge collections/arrays using keys.
+ * Merge collections/arrays using keys.
  * Can cascade parent keys to child records.
+ * Supports Lists/Arrays and other a number of other collection types.
+
+A primary use-case we use the library for, is that is allows us to merge classes changed through a javascript front end, and then merge them into existing Entity Framework entities.  Using the CopyProperties function which merges values (rather than serialization which just creates new instances) the Entity Framework change detection works, and the database changes are applied correctly.
 
 ---
 
@@ -32,8 +35,8 @@ This is still early release, and passing our basic tests.  Use with care, and en
 
 This has the following limitations:
 
-* Only supports class properties (i.e. proerties declared with a get/set).  Fields are ignored.
-* Only supports a limited number of colleciton types such as List/HashSet.  It should work if the list is derived from `IEnumerable` and contains a `Add(item)` and `Remove(item)` function.  Dictionary/Queue and other types that don't meet this format are not supported.
+* Only supports class properties (i.e. properties declared with a get/set).  Fields are ignored.
+* Only supports a limited number of collection types such as List/HashSet.  It should work if the list is derived from `IEnumerable` and contains a `Add(item)` and `Remove(item)` function.  Dictionary/Queue and other types that don't meet this format are not supported.
 
 ### Hello World Example
 
@@ -71,11 +74,11 @@ var copyClass = original.CloneProperties<SampleClass>();
 ```
 
 With a small set of data (~50 row collection) the performance is about 10x faster (50ms for the CopyProperties, 500ms for the JsonConvert).
-For a larger set of data(~500,000 row collection) the performance gain is more modest about 30% faster (3 seconds for CopyProperties, 4 seconsd for JsonConvert)
+For a larger set of data(~500,000 row collection) the performance gain is more modest about 30% faster (3 seconds for CopyProperties, 4 seconds for JsonConvert)
 
 [Performance demo](https://dotnetfiddle.net/SMR1vF)
 
-**Special Note**: For best performance a handcoded copy will perform significatly better than either this library or serlialization, as the `Reflection` library adds significant overhead.
+**Special Note**: For best performance a hand coded copy will perform significantly better than either this library or serialization, as the `Reflection` library adds significant overhead.
 
 ### Usage
 
@@ -86,11 +89,11 @@ To get started, add the following name space.
 using Dexih.Utils.CopyProperties;
 ```
 
-There are two functions available; the `CopyProperties` and the `CloneProperties`.  The only difference between these is the `CopyProerties` populates an already created instance, adn the `CloneProperties` creates and rerturns a new instance.
+There are two functions available; the `CopyProperties` and the `CloneProperties`.  The only difference between these is the `CopyProperties` populates an already created instance, adn the `CloneProperties` creates and returns a new instance.
 
 The following example performs the same result using the two available functions.
 
-```charp
+```csharp
 // CopyProperties requires an instance to be already created.
 var copy = new SampleClass();
 original.CopyProperties(copy);
@@ -101,7 +104,7 @@ copy = original.CloneProperties<SampleClass>();
 
 By default these functions will perform a deep copy of the object which will recurse through any child object properties, arrays and collections.  If all that is required is a shallow copy (i.e. only top level primary properties such as int/string/dates), this can be done by setting the `shallowCopy` parameter to `false` as follows.
 
-```charp
+```csharp
 // CopyProperties shallow copy
 var copy = new SampleClass(false);
 original.CopyProperties(copy);
@@ -233,7 +236,7 @@ The following is a complete list of the attributes available for decorating clas
 
 I welcome feedback and contributions to this library.
 
-* For issues/bugs please try to provide a test (preferrably a [fiddle](https://dotnetfiddle.net)) that demonstrates the issue.
+* For issues/bugs please try to provide a test (preferably a [fiddle](https://dotnetfiddle.net)) that demonstrates the issue.
 * For pull requests, please provide adequate tests before submitting.
 
 Good luck.
