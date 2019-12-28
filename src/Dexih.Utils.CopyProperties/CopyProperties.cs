@@ -78,13 +78,32 @@ namespace Dexih.Utils.CopyProperties
                 }
                 else if (typeof(IEnumerable).IsAssignableFrom(targetType))
                 {
-                    propertyStructure.AddMethod = targetType.GetMethod(nameof(ICollection<object>.Add));
-                    propertyStructure.RemoveMethod = targetType.GetMethod(nameof(ICollection<object>.Remove));
+                    var targetItemType = GetItemElementType(targetType);
+
+                    try
+                    {
+                        propertyStructure.AddMethod = targetType.GetMethod(nameof(ICollection<object>.Add), new [] {targetItemType} );
+                    }
+                    catch (AmbiguousMatchException ex)
+                    {
+                        throw new CopyPropertiesException(
+                            $"Could not get the \"Add\" method from the type {targetType.Name} due to ambiguous matches.", ex);
+                    }
+
+                    try
+                    {
+                        propertyStructure.RemoveMethod = targetType.GetMethod(nameof(ICollection<object>.Remove), new [] {targetItemType});
+                    }
+                    catch (AmbiguousMatchException ex)
+                    {
+                        throw new CopyPropertiesException(
+                            $"Could not get the \"Remove\" method from the type {targetType.Name} due to ambiguous matches.",ex);
+                    }
+
                     if(propertyStructure.AddMethod == null) 
                     {
                         throw new CopyPropertiesInvalidCollectionException($"The target property {targetType.Name} is a collection, however no Add method could be found.");
                     }
-                    var targetItemType = propertyStructure.AddMethod.GetParameters()[0].ParameterType;
                     propertyStructure.IsTargetCollection = true;
                     propertyStructure.ItemStructure = BuildPropertyStructure(sourceItemType, targetItemType, otherTypes);
                     if (propertyStructure.ItemStructure.PropertyElements != null)
@@ -288,11 +307,54 @@ namespace Dexih.Utils.CopyProperties
 
         public static T CloneProperties<T>(this object source, bool shallowCopy = false)
         {
+            if (source == null)
+            {
+                return default(T);
+            }
+
+            var type = typeof(T);
+
+            if (type.IsValueType)
+            {
+                return (T) source;
+            }
+            
+            var constructor = type.GetConstructor(Type.EmptyTypes);
+            if (constructor == null)
+            {
+                return (T) CloneProperties(source, shallowCopy);
+            }
+            
             var target = Activator.CreateInstance(typeof(T));
             source.CopyProperties(ref target, shallowCopy);
             return (T)target;
         }
 
+        public static T CloneProperties<T>(this T source, bool shallowCopy = false)
+        {
+            if(EqualityComparer<T>.Default.Equals(source, default(T))) {
+                return default;
+            }
+
+            var type = typeof(T);
+            
+            // if it's a value type a copy will be returned.
+            if (type.IsValueType)
+            {
+                return source;
+            }
+            
+            var constructor = type.GetConstructor(Type.EmptyTypes);
+            if (constructor == null)
+            {
+                return (T) CloneProperties((object) source, shallowCopy);
+            }
+
+            var target = Activator.CreateInstance(type);
+            source.CopyProperties(ref target, shallowCopy);
+            return (T)target;
+        }
+        
         /// <summary>
         /// Clone the properties from the source object.
         /// Note: this will only copy object properties (i.e declared with get/set).
@@ -305,10 +367,11 @@ namespace Dexih.Utils.CopyProperties
             // If source is null throw an exception
             if (source == null)
             {
-                throw new CopyPropertiesNullException();
+                return null;
             }
 
             var srcType = source.GetType();
+            
             var properties = GetPropertyStructure(srcType, srcType);
             object target = null;
 

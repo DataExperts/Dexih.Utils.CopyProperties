@@ -54,6 +54,16 @@ namespace Dexih.Utils.CopyProperties.Tests
         }
 
         [Fact]
+        public void CloneNullReturnsNull()
+        {
+            object value = null;
+            Assert.Null(value.CloneProperties());
+
+            CopyTest copyTest = null;
+            Assert.Null(copyTest.CloneProperties<CopyTest>());
+        }
+        
+        [Fact]
         public void CopyPropertiesPrimaryOnly()
         {
 
