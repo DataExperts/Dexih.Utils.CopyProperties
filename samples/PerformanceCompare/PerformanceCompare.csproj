@@ -10,7 +10,7 @@
     <PackageReference Include="System.Text.Json" Version="4.6.0" />
     <ProjectReference Include="..\..\src\Dexih.Utils.CopyProperties\Dexih.Utils.CopyProperties.csproj" />
     <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2">
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1">
     </PackageReference>
   </ItemGroup>
 
